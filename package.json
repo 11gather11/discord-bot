@@ -1,21 +1,28 @@
 {
-  "name": "ts-meo-discord",
-  "version": "1.0.0",
+  "name": "ts-discord-bot",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "test": "ts-node src/main.ts",
+    "dev": "ts-node src/main.ts",
+    "build": "tsc",
     "start": "node build/main.js",
-    "compile": "tsc -p ."
+    "prepare": "husky install"
   },
   "dependencies": {
     "discord.js": "^14.15.3",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.5.0",
-    "eslint": "9.x",
-    "globals": "^15.6.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.5.2",
-    "typescript-eslint": "^7.14.1"
+    "@ianvs/prettier-plugin-sort-imports": "^4.3.0",
+    "@types/eslint": "^8.56.10",
+    "@types/node": "^20.14.9",
+    "@typescript-eslint/eslint-plugin": "^7.14.1",
+    "@typescript-eslint/parser": "^7.14.1",
+    "eslint": "8.57.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.2",
+    "typescript": "^5.5.2"
   }
 }
