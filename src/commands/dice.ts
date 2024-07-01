@@ -4,9 +4,19 @@ import { SlashCommandBuilder, type CommandInteraction } from 'discord.js'
 export const data = new SlashCommandBuilder()
   .setName('dice')
   .setDescription('Rolls a dice and returns the result')
+  .addIntegerOption((option) =>
+    option
+      .setName('sides')
+      .setDescription('Number of sides on the dice')
+      .setRequired(true)
+  )
 
 // コマンドが実行されたときの処理
 export async function execute(interaction: CommandInteraction): Promise<void> {
-  const roll = Math.floor(Math.random() * 6) + 1
-  await interaction.reply(`You rolled a ${roll}`)
+  // 引数からサイコロの面数を取得
+  const sides = interaction.options.data[0].value as number
+  // サイコロを振る処理
+  const roll = Math.floor(Math.random() * sides) + 1
+  // 結果を返信
+  await interaction.reply(`You rolled a ${roll} on a ${sides}-sided dice`)
 }
