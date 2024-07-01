@@ -10,33 +10,22 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildPresences,
-    GatewayIntentBits.GuildMembers,
   ],
 })
 
 // ボットのトークンを環境変数から取得
 const token = process.env.DISCORD_BOT_TOKEN
+const clientId = process.env.DISCORD_CLIENT_ID
+const guildId = process.env.DISCORD_GUILD_ID
 
-if (!token) {
-  console.error('DISCORD_BOT_TOKEN is not defined in .env file')
+if (!token || !clientId || !guildId) {
+  console.error('環境変数が設定されていません。')
   process.exit(1)
 }
 
 // ボットが起動したときに実行されるイベント
 client.once(Events.ClientReady, (client) => {
-  console.log(`Ready! Logged in as ${client.user.tag}`)
-})
-
-// メッセージが送信されたときに実行されるイベント
-client.on('messageCreate', (message) => {
-  // ボット自身のメッセージには反応しないようにする
-  if (message.author.bot) return
-
-  // ユーザーが「!ping」と入力した場合に「Pong!」と応答する
-  if (message.content === '!ping') {
-    void message.channel.send('Pong!')
-  }
+  console.log(`準備OK! ${client.user.tag}がログインします。`)
 })
 
 // ボットをログインさせる
