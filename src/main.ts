@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits } from 'discord.js'
+import { Client, Events, GatewayIntentBits } from 'discord.js'
 import * as dotenv from 'dotenv'
 
 // .envファイルから環境変数を読み込む
@@ -24,8 +24,8 @@ if (!token) {
 }
 
 // ボットが起動したときに実行されるイベント
-client.once('ready', () => {
-  console.log('Bot is online!')
+client.once(Events.ClientReady, (client) => {
+  console.log(`Ready! Logged in as ${client.user.tag}`)
 })
 
 // メッセージが送信されたときに実行されるイベント
