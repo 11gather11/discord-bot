@@ -2,11 +2,11 @@ import { SlashCommandBuilder, type CommandInteraction } from 'discord.js'
 
 // コマンドの設定をエクスポート
 export const data = new SlashCommandBuilder()
-  .setName('dice')
+  .setName('ダイス')
   .setDescription('Rolls a dice and returns the result')
-  .addIntegerOption((option) =>
+  .addStringOption((option) =>
     option
-      .setName('sides')
+      .setName('式')
       .setDescription('Number of sides on the dice')
       .setRequired(true)
   )
