@@ -6,9 +6,13 @@ dotenv.config()
 
 // 新しいClientインスタンスを作成
 const client = new Client({
+  // このボットがどのイベントを受け取るかを設定
   intents: [
+    // サーバーの情報を受け取るための権限
     GatewayIntentBits.Guilds,
+    // サーバー内のメッセージを受け取るための権限
     GatewayIntentBits.GuildMessages,
+    // メッセージの内容を受け取るための権限
     GatewayIntentBits.MessageContent,
   ],
 })
