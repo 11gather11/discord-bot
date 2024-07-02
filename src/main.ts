@@ -61,6 +61,7 @@ if (!token || !clientId || !guildId) {
 
 // ボットが起動したときに実行されるイベント
 client.once(Events.ClientReady, (client): void => {
+  // クライアントがログインしたときに実行される処理
   ;(async (): Promise<void> => {
     console.log(`準備OK! ${client.user.tag}がログインします。`)
 
@@ -80,7 +81,7 @@ client.once(Events.ClientReady, (client): void => {
 })
 
 // スラッシュコマンドが実行されたときの処理
-client.on('interactionCreate', (interaction: Interaction): void => {
+client.on(Events.InteractionCreate, (interaction: Interaction): void => {
   ;(async (): Promise<void> => {
     if (!interaction.isCommand()) return
 
