@@ -4,12 +4,14 @@ import { rollDice } from '../lib/rollDice'
 
 // コマンドの設定をエクスポート
 export const data = new SlashCommandBuilder()
-  .setName('ダイス_シークレット')
-  .setDescription('Rolls a dice and returns the result')
+  .setName('dice_Secret')
+  .setDescription('ダイスを振って結果を返します。(他のユーザーには見えません)')
   .addStringOption((option) =>
     option
       .setName('式')
-      .setDescription('Number of sides on the dice')
+      .setDescription(
+        '入力例: 1d100 ← 100面のダイスを1回振る場合 1d10+1d6 ← 10面のダイスを1回振った結果と6面のダイスを1回振った結果を足す場合'
+      )
       .setRequired(true)
   )
 
