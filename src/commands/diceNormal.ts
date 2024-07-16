@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, type CommandInteraction } from 'discord.js'
+import { type CommandInteraction, SlashCommandBuilder } from 'discord.js'
 
 import { rollDice } from '../lib/rollDice'
 

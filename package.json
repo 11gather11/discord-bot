@@ -6,13 +6,12 @@
     "dev": "ts-node src/main.ts",
     "build": "tsc",
     "start": "node build/main.js",
-    "prepare": "husky install"
-  },
-  "lint-staged": {
-    "*.{ts,js}": [
-      "prettier --write",
-      "eslint --fix"
-    ]
+    "format": "biome format ./src/",
+    "lint": "biome lint ./src/",
+    "check": "biome check ./src/",
+    "fix:format": "biome format --write ./src/",
+    "fix:lint": "biome lint --write ./src/",
+    "fix:check": "biome check --write ./src/"
   },
   "dependencies": {
     "discord.js": "^14.15.3",
@@ -20,15 +19,9 @@
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^4.3.0",
-    "@types/eslint": "^8.56.10",
-    "@types/node": "^20.14.9",
-    "@typescript-eslint/eslint-plugin": "^7.14.1",
-    "@typescript-eslint/parser": "^7.14.1",
-    "eslint": "8.57.0",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.7",
-    "prettier": "^3.3.2",
-    "typescript": "^5.5.2"
+    "@biomejs/biome": "1.8.3",
+    "@types/node": "^20.14.10",
+    "lefthook": "^1.7.2",
+    "typescript": "^5.5.3"
   }
 }

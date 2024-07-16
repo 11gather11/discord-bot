@@ -1,9 +1,9 @@
-import * as path from 'path'
+import * as path from 'node:path'
 import {
   Client,
+  type CommandInteraction,
   Events,
   GatewayIntentBits,
-  type CommandInteraction,
   type Interaction,
 } from 'discord.js'
 import * as dotenv from 'dotenv'
@@ -67,9 +67,7 @@ client.on(Events.InteractionCreate, (interaction: Interaction): void => {
         ephemeral: true,
       })
     }
-  })().catch((error) =>
-    console.error('インタラクションの処理に失敗しました:', error)
-  )
+  })().catch((error) => console.error('インタラクションの処理に失敗しました:', error))
 })
 
 // ボットをログインさせる

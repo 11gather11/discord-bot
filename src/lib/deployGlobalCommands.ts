@@ -1,11 +1,11 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import {
   Collection,
-  REST,
-  Routes,
   type CommandInteraction,
+  REST,
   type RESTPostAPIApplicationCommandsJSONBody,
+  Routes,
 } from 'discord.js'
 import * as dotenv from 'dotenv'
 
@@ -25,9 +25,7 @@ export const deployGlobalCommands = async (
   clientId: string,
   token: string
 ): Promise<void> => {
-  const commandFiles = fs
-    .readdirSync(commandsPath)
-    .filter((file) => file.endsWith('.ts'))
+  const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.ts'))
 
   const promises = commandFiles.map(async (file) => {
     const filePath = path.join(commandsPath, file)
