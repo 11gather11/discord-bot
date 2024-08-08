@@ -13,39 +13,43 @@ if (!(DISCORD_CLIENT_ID && DISCORD_GUILD_ID && DISCORD_TOKEN)) {
 	process.exit(1)
 }
 
-const commands: Command[] = []
+export const deployCommands = async () => {
+	const commands: Command[] = []
 
-const foldersPath = path.join(__dirname, 'commands')
-const commandFolders = fs.readdirSync(foldersPath)
+	const foldersPath = path.join(__dirname, 'commands')
+	const commandFolders = fs.readdirSync(foldersPath)
 
-for (const folder of commandFolders) {
-	const commandsPath = path.join(foldersPath, folder)
-	const commandFiles = fs
-		.readdirSync(commandsPath)
-		.filter((file) => file.endsWith('.ts') || file.endsWith('.js'))
-	for (const file of commandFiles) {
-		const filePath = path.join(commandsPath, file)
-		const command = await import(filePath)
+	for (const folder of commandFolders) {
+		const commandsPath = path.join(foldersPath, folder)
+		const commandFiles = fs
+			.readdirSync(commandsPath)
+			.filter((file) => file.endsWith('.ts') || file.endsWith('.js'))
+		for (const file of commandFiles) {
+			const filePath = path.join(commandsPath, file)
+			const command = await import(filePath)
 
-		if ('data' in command && 'execute' in command) {
-			commands.push(command.data.toJSON())
-		} else {
-			console.error(`コマンドファイル ${file} に data または execute が見つかりません`)
+			if ('data' in command && 'execute' in command) {
+				commands.push(command.data.toJSON())
+			} else {
+				console.error(`コマンドファイル ${file} に data または execute が見つかりません`)
+			}
 		}
 	}
+
+	const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN)
+	;(async () => {
+		try {
+			console.log(`${commands.length} 個のアプリケーションコマンドを登録します。`)
+
+			const data = (await rest.put(
+				Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID),
+				{ body: commands }
+			)) as APIApplicationCommand[]
+			console.log(`${data.length} 個のアプリケーションコマンドを登録しました。`)
+		} catch (error) {
+			console.error(error)
+		}
+	})()
 }
 
-const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN)
-;(async () => {
-	try {
-		console.log(`${commands.length} 個のアプリケーションコマンドを登録します。`)
-
-		const data = (await rest.put(
-			Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID),
-			{ body: commands }
-		)) as APIApplicationCommand[]
-		console.log(`${data.length} 個のアプリケーションコマンドを登録しました。`)
-	} catch (error) {
-		console.error(error)
-	}
-})()
+deployCommands().catch(console.error)

@@ -1,9 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { Client, Collection, Events, GatewayIntentBits, type Interaction } from 'discord.js'
-
 import 'dotenv/config'
+
+import { Client, Collection, GatewayIntentBits } from 'discord.js'
 
 // 環境変数
 const { DISCORD_TOKEN } = process.env
@@ -22,8 +22,7 @@ client.commands = new Collection()
 //初期化
 const initialize = async () => {
 	await loadCommands()
-	client.once(Events.ClientReady, onClientReady)
-	client.on(Events.InteractionCreate, onInteractionCreate)
+	await loadEvents()
 	await client.login(DISCORD_TOKEN)
 }
 
@@ -40,12 +39,12 @@ const loadCommands = async () => {
 		// コマンドフォルダー内のファイルを取得
 		const commandFiles = fs
 			.readdirSync(commandsPath)
-			.filter((file) => file.endsWith('.ts') || file.endsWith('.js'))
+			.filter((file) => (file.endsWith('.ts') || file.endsWith('.js')) && !file.startsWith('_'))
 		// 各ファイルを読み込む
 		for (const file of commandFiles) {
 			// コマンドファイルのパス
 			const filePath = path.join(commandsPath, file)
-			// コマンド
+			// コマンドをインポート
 			const command = await import(filePath)
 			// data と execute があるか確認
 			if ('data' in command && 'execute' in command) {
@@ -59,33 +58,39 @@ const loadCommands = async () => {
 	}
 }
 
-const onClientReady = (c: Client) => {
-	console.log(`ログイン成功: ${c.user?.tag}`)
-}
-
-// コマンドが実行されたとき
-const onInteractionCreate = async (interaction: Interaction) => {
-	// コマンド以外のイベントは無視
-	if (!interaction.isCommand()) {
-		return
-	}
-	// コマンドが存在するか確認
-	const command = client.commands.get(interaction.commandName)
-	// コマンドが存在しない場合は無視
-	if (!command) {
-		return
-	}
-
-	try {
-		// コマンドを実行
-		await command.execute(interaction)
-	} catch (error) {
-		// エラーが発生した場合はエラーを出力
-		console.error(error)
-		await interaction.reply({
-			content: 'コマンドの実行中にエラーが発生しました',
-			ephemeral: true,
-		})
+// イベントを読み込む
+const loadEvents = async () => {
+	// イベントフォルダーのパス
+	const foldersPath = path.join(__dirname, 'events')
+	// イベントフォルダー内のファイルを取得
+	const eventFolders = fs.readdirSync(foldersPath)
+	// 各フォルダー内のイベントファイルを読み込む
+	for (const folder of eventFolders) {
+		// イベントフォルダー内のフォルダーのパス
+		const eventsPath = path.join(foldersPath, folder)
+		// イベントフォルダー内のファイルを取得
+		const eventFiles = fs
+			.readdirSync(eventsPath)
+			.filter((file) => (file.endsWith('.ts') || file.endsWith('.js')) && !file.startsWith('_'))
+		// 各ファイルを読み込む
+		for (const file of eventFiles) {
+			// イベントファイルのパス
+			const filePath = path.join(eventsPath, file)
+			// イベントをインポート
+			const event = await import(filePath)
+			// name と execute があるか確認
+			if ('name' in event && 'execute' in event) {
+				// イベントを登録 (once が true の場合は once で登録)
+				if (event.once) {
+					client.once(event.name, (...args) => event.execute(...args))
+				} else {
+					client.on(event.name, (...args) => event.execute(...args))
+				}
+				// name と execute がない場合はエラーを出力
+			} else {
+				console.error(`イベントファイル ${file} に name または execute が見つかりません`)
+			}
+		}
 	}
 }
 
