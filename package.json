@@ -1,27 +1,31 @@
 {
-  "name": "ts-discord-bot",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "ts-node src/main.ts",
-    "build": "tsc",
-    "start": "node build/main.js",
-    "format": "biome format ./src/",
-    "lint": "biome lint ./src/",
-    "check": "biome check ./src/",
-    "fix:format": "biome format --write ./src/",
-    "fix:lint": "biome lint --write ./src/",
-    "fix:check": "biome check --write ./src/"
-  },
-  "dependencies": {
-    "discord.js": "^14.15.3",
-    "dotenv": "^16.4.5",
-    "ts-node": "^10.9.2"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.8.3",
-    "@types/node": "^20.14.10",
-    "lefthook": "^1.7.2",
-    "typescript": "^5.5.3"
-  }
+	"name": "ts-discord-bot",
+	"version": "0.1.0",
+	"private": true,
+	"module": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"dev": "bun src/index.ts",
+		"deployCommands": "bun src/deploy-commands.ts",
+		"build": "tsc",
+		"start": "node dist/index.js",
+		"format": "biome format ./src/",
+		"lint": "biome lint ./src/",
+		"check": "biome check ./src/",
+		"fix:format": "biome format --write ./src/",
+		"fix:lint": "biome lint --write ./src/",
+		"fix:check": "biome check --write ./src/"
+	},
+	"dependencies": {
+		"discord.js": "^14.15.3",
+		"dotenv": "^16.4.5"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.8.3",
+		"lefthook": "^1.7.11",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5.5.4"
+	}
 }
