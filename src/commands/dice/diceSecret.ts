@@ -1,6 +1,6 @@
 import { type CommandInteraction, SlashCommandBuilder } from 'discord.js'
 
-import { rollDice } from '../../lib/rollDice'
+import { rollDice } from '../../utils/rollDice'
 
 // コマンドの設定をエクスポート
 export const data = new SlashCommandBuilder()
