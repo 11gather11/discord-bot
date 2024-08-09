@@ -30,9 +30,9 @@ const twitterClient = new TwitterApi({
 // Twitterにツイートを投稿
 const postTweet = async (userLogin: string, title: string, gameName: string) => {
 	try {
-		const tweetText = `${userLogin}がTwitchで配信を開始しました！\n\n🎮 ゲーム: ${gameName}\n📺 タイトル: ${title}\n\n視聴はこちら: https://www.twitch.tv/${userLogin} #Twitch #配信`
+		const tweetText = `${userLogin}がTwitchで配信を開始しました! \n\n🎮 ゲーム: ${gameName}\n📺 タイトル: ${title}\n\n視聴はこちら: https://www.twitch.tv/${userLogin} \n\n#Twitch #配信`
 		await twitterClient.v2.tweet(tweetText)
-		console.log('ツイートを投稿しました:', tweetText)
+		console.log('ツイートを投稿しました')
 	} catch (error) {
 		console.error('ツイートの投稿に失敗しました:', error)
 	}
@@ -79,7 +79,11 @@ const sendNotification = async (
 				iconURL: 'https://static.twitchcdn.net/assets/favicon-32-e29e246c157142c94346.png',
 			})
 		// メッセージを送信
-		await channel.send({ content: '@everyone 配信開始', embeds: [embed] })
+		await channel.send({
+			content: `@everyone ${userLogin}がTwitchで配信を開始しました!`,
+			embeds: [embed],
+		})
+		console.log('Discordに通知を送信しました')
 		// 配信開始時にTwitterにツイートを投稿
 		await postTweet(userLogin, title, gameName)
 	} else {
