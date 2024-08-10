@@ -9,7 +9,7 @@ import type { TwitchGame, TwitchStream } from '../types/twitch'
 const {
 	TWITCH_CLIENT_ID,
 	TWITCH_CLIENT_SECRET,
-	DISCORD_TWITCH_CHANNEL_ID,
+	DISCORD_STREAMS_CHANNEL_ID,
 	TWITTER_API_KEY,
 	TWITTER_API_SECRET_KEY,
 	TWITTER_ACCESS_TOKEN,
@@ -27,10 +27,17 @@ const twitterClient = new TwitterApi({
 	accessSecret: TWITTER_ACCESS_TOKEN_SECRET as string,
 })
 
+interface PostTweet {
+	userLogin: string
+	userName: string
+	title: string
+	gameName: string
+}
+
 // Twitterにツイートを投稿
-const postTweet = async (userLogin: string, title: string, gameName: string) => {
+const postTweet = async ({ userLogin, userName, title, gameName }: PostTweet) => {
 	try {
-		const tweetText = `${userLogin}がTwitchで配信を開始しました! \n\n🎮 ゲーム: ${gameName}\n📺 タイトル: ${title}\n\n視聴はこちら: https://www.twitch.tv/${userLogin} \n\n#Twitch #配信`
+		const tweetText = `${userName}がTwitchで配信を開始しました! \n\n🎮 ゲーム: ${gameName}\n📺 タイトル: ${title}\n\n視聴はこちら: https://www.twitch.tv/${userLogin} \n\n#Twitch #配信`
 		await twitterClient.v2.tweet(tweetText)
 		console.log('ツイートを投稿しました')
 	} catch (error) {
@@ -38,18 +45,31 @@ const postTweet = async (userLogin: string, title: string, gameName: string) => 
 	}
 }
 
-// Twitchの配信通知を送信
-const sendNotification = async (
-	client: Client,
-	userLogin: string,
-	title: string,
-	viewerCount: number,
-	startedAt: string,
-	gameName: string,
-	thumbnailUrl: string,
+interface SendNotification {
+	client: Client
+	userLogin: string
+	userName: string
+	title: string
+	viewerCount: number
+	startedAt: string
+	gameName: string
+	thumbnailUrl: string
 	gameImageUrl: string
-) => {
-	const channel = await client.channels.fetch(DISCORD_TWITCH_CHANNEL_ID as string)
+}
+
+// Twitchの配信通知を送信
+const sendNotification = async ({
+	client,
+	userLogin,
+	userName,
+	title,
+	viewerCount,
+	startedAt,
+	gameName,
+	thumbnailUrl,
+	gameImageUrl,
+}: SendNotification) => {
+	const channel = await client.channels.fetch(DISCORD_STREAMS_CHANNEL_ID as string)
 	if (channel instanceof TextChannel) {
 		const embed = new EmbedBuilder()
 			// 埋め込みの左側の色を設定
@@ -60,7 +80,7 @@ const sendNotification = async (
 			.setURL(`https://www.twitch.tv/${userLogin}`)
 			// 名前を設定
 			.setAuthor({
-				name: userLogin,
+				name: userName,
 				url: `https://www.twitch.tv/${userLogin}`,
 			})
 			// 埋め込みの右上に表示される画像を設定
@@ -80,12 +100,12 @@ const sendNotification = async (
 			})
 		// メッセージを送信
 		await channel.send({
-			content: `@everyone ${userLogin}がTwitchで配信を開始しました!`,
+			content: `@everyone ${userName}がTwitchで配信を開始しました!`,
 			embeds: [embed],
 		})
 		console.log('Discordに通知を送信しました')
 		// 配信開始時にTwitterにツイートを投稿
-		await postTweet(userLogin, title, gameName)
+		await postTweet({ userLogin: userLogin, userName: userName, title: title, gameName: gameName })
 	} else {
 		console.error('指定されたチャンネルIDはテキストチャンネルではありません')
 	}
@@ -110,6 +130,7 @@ const getTwitchAccessToken = async () => {
 	}
 }
 
+// Twitchのゲーム情報を取得
 const getTwitchGame = async (gameId: string): Promise<TwitchGame> => {
 	try {
 		const response = await axios.get('https://api.twitch.tv/helix/games', {
@@ -132,6 +153,7 @@ const getTwitchGame = async (gameId: string): Promise<TwitchGame> => {
 	}
 }
 
+// 配信中かどうかをチェック
 const isStreaming = async (userLogin: string): Promise<TwitchStream | undefined> => {
 	try {
 		const response = await axios.get('https://api.twitch.tv/helix/streams', {
@@ -171,6 +193,8 @@ const checkStream = async (client: Client, userLogin: string) => {
 		if (stream && !notified) {
 			// 配信情報を取得
 			const title = stream.title
+			// ユーザー名を取得
+			const userName = stream.user_name
 			// 視聴者数を取得
 			const viewerCount = stream.viewer_count
 			// 配信開始時刻を取得
@@ -186,16 +210,17 @@ const checkStream = async (client: Client, userLogin: string) => {
 			// サムネイルURLを取得
 			const thumbnailUrl = stream.thumbnail_url.replace('{width}', '640').replace('{height}', '360')
 			// 通知を送信
-			await sendNotification(
-				client,
-				userLogin,
-				title,
-				viewerCount,
-				startedAt,
-				gameName,
-				thumbnailUrl,
-				gameImageUrl
-			)
+			await sendNotification({
+				client: client,
+				userLogin: userLogin,
+				userName: userName,
+				title: title,
+				viewerCount: viewerCount,
+				startedAt: startedAt,
+				gameName: gameName,
+				thumbnailUrl: thumbnailUrl,
+				gameImageUrl: gameImageUrl,
+			})
 			// 通知済みフラグをtrueにセット
 			streamingNotified.set(userLogin, true)
 			// 配信中でなく通知済みの場合は通知済みフラグをfalseにセット
@@ -213,10 +238,12 @@ export const startTwitchLiveNotification = async (client: Client, userLogin: str
 	try {
 		// アクセストークンを取得
 		await getTwitchAccessToken()
+		// ボット起動時に配信状況をチェック
+		await checkStream(client, userLogin)
 		// 配信状況の監視を開始
 		console.log(`配信状況の監視を開始しました: ${userLogin}`)
 		// 60秒ごとにチェック
-		setInterval(() => checkStream(client, userLogin), 10000)
+		setInterval(async () => await checkStream(client, userLogin), 1000 * 60)
 	} catch (error) {
 		console.error('Twitchライブ通知初期化エラー:', error)
 	}
