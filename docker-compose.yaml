@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  discord-bot:
+    build: .
+    container_name: ts-meo-discord
+    volumes:
+      - .:/app
+    command: ["bun", "src/index.ts"]
+    restart: unless-stopped
