@@ -1,4 +1,4 @@
-import { type CommandInteraction, SlashCommandBuilder } from 'discord.js'
+import { type ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 
 import { rollDice } from '../../utils/rollDice'
 
@@ -16,8 +16,8 @@ export const data = new SlashCommandBuilder()
 	)
 
 // コマンドが実行されたときの処理
-export const execute = async (interaction: CommandInteraction): Promise<void> => {
-	const expression = interaction.options.data[0].value as string
+export const execute = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+	const expression = interaction.options.getString('式') ?? ''
 
 	const result = rollDice(expression)
 

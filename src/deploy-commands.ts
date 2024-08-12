@@ -4,8 +4,6 @@ import path from 'node:path'
 import { type APIApplicationCommand, REST, Routes } from 'discord.js'
 import type { Command } from './types/client'
 
-import 'dotenv/config'
-
 // 環境変数
 const { DISCORD_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_TOKEN } = process.env
 if (!(DISCORD_CLIENT_ID && DISCORD_GUILD_ID && DISCORD_TOKEN)) {

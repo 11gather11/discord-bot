@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'
 
-import 'dotenv/config'
 import TwitterApi from 'twitter-api-v2'
 import type { TwitchGame, TwitchStream } from '../types/twitch'
 
@@ -15,16 +14,30 @@ const {
 	TWITTER_ACCESS_TOKEN,
 	TWITTER_ACCESS_TOKEN_SECRET,
 } = process.env
+if (
+	!(
+		TWITCH_CLIENT_ID &&
+		TWITCH_CLIENT_SECRET &&
+		DISCORD_STREAMS_CHANNEL_ID &&
+		TWITTER_API_KEY &&
+		TWITTER_API_SECRET_KEY &&
+		TWITTER_ACCESS_TOKEN &&
+		TWITTER_ACCESS_TOKEN_SECRET
+	)
+) {
+	console.error('環境変数が設定されていません')
+	process.exit(1)
+}
 
 let accessToken = ''
 const streamingNotified = new Map<string, boolean>()
 
 // Twitter APIクライアントを初期化
 const twitterClient = new TwitterApi({
-	appKey: TWITTER_API_KEY as string,
-	appSecret: TWITTER_API_SECRET_KEY as string,
-	accessToken: TWITTER_ACCESS_TOKEN as string,
-	accessSecret: TWITTER_ACCESS_TOKEN_SECRET as string,
+	appKey: TWITTER_API_KEY,
+	appSecret: TWITTER_API_SECRET_KEY,
+	accessToken: TWITTER_ACCESS_TOKEN,
+	accessSecret: TWITTER_ACCESS_TOKEN_SECRET,
 })
 
 interface PostTweet {

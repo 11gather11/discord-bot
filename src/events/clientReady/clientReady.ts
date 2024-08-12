@@ -2,9 +2,12 @@ import { type Client, Events } from 'discord.js'
 import { startTwitchLiveNotification } from '../../lib/twitch'
 import { startYouTubeVideoNotification } from '../../lib/youtube'
 import { updateMemberCounts } from '../../utils/memberCounts'
-import 'dotenv/config'
 
 const { YOUTUBE_CHANNEL_ID } = process.env
+if (!YOUTUBE_CHANNEL_ID) {
+	console.error('環境変数が設定されていません')
+	process.exit(1)
+}
 
 export const name = Events.ClientReady
 
@@ -13,6 +16,6 @@ export const once = true
 export const execute = (client: Client) => {
 	console.log(`ログイン成功: ${client.user?.tag}`)
 	startTwitchLiveNotification(client, 'vvvmeovvv')
-	startYouTubeVideoNotification(client, YOUTUBE_CHANNEL_ID as string)
+	startYouTubeVideoNotification(client, YOUTUBE_CHANNEL_ID)
 	updateMemberCounts(client)
 }
