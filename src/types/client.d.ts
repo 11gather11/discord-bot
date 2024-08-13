@@ -1,12 +1,12 @@
 import type {
+	ChatInputCommandInteraction,
 	Collection,
-	CommandInteraction,
 	RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js'
 
 interface Command {
 	data: RESTPostAPIApplicationCommandsJSONBody
-	execute: (interaction: CommandInteraction) => Promise<void>
+	execute?: (interaction: ChatInputCommandInteraction) => Promise<void> | void
 }
 
 declare module 'discord.js' {
