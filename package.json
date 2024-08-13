@@ -8,8 +8,6 @@
 		"dev": "bun src/index.ts",
 		"deployCommands": "bun src/deploy-commands.ts",
 		"deployGlobalCommands": "bun src/deploy-global-commands.ts",
-		"build": "tsc",
-		"start": "node dist/index.js",
 		"format": "biome format ./src/",
 		"lint": "biome lint ./src/",
 		"check": "biome check ./src/",
@@ -24,7 +22,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.8.3",
-		"lefthook": "^1.7.11",
+		"lefthook": "^1.7.12",
 		"@types/bun": "latest"
 	},
 	"peerDependencies": {
