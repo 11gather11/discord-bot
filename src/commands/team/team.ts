@@ -15,11 +15,12 @@ export const data = new SlashCommandBuilder()
 export const execute = async (interaction: ChatInputCommandInteraction) => {
 	// memberがGuildMember型であることを確認
 	const member = interaction.member as GuildMember
-	// ボイスチャンネルを取得
+
+	// メンバーが参加しているボイスチャンネルを取得
 	const voiceChannel = member.voice.channel
 
+	// ボイスチャンネルが取得できなかった場合
 	if (!voiceChannel) {
-		// ボイスチャンネルが取得できなかった場合
 		await interaction.reply({
 			content: 'ボイスチャンネルに参加してからコマンドを実行してください。',
 			ephemeral: true,
@@ -27,5 +28,39 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 		return
 	}
 
-	await interaction.reply('チーム分けを行います。')
+	// チーム数を取得（必須オプションなのでnullチェック不要）
+	const teamCount = interaction.options.getInteger('チーム数') as number
+
+	// ボイスチャンネル内のメンバーを取得し、ボットユーザーを除外
+	const members = Array.from(voiceChannel.members.filter((m) => !m.user.bot).values())
+
+	// メンバーがチーム数より少ない場合
+	if (members.length < teamCount) {
+		return interaction.reply({
+			content: `チーム数 (${teamCount}) よりメンバーが少ないため、チーム分けできません。`,
+			ephemeral: true,
+		})
+	}
+
+	// メンバーをランダムにシャッフル
+	for (let i = members.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1))
+		;[members[i], members[j]] = [members[j], members[i]]
+	}
+
+	// チームごとにメンバーを分配
+	const teams: string[][] = Array.from({ length: teamCount }, () => [])
+	members.forEach((member, index) => {
+		teams[index % teamCount].push(member.displayName)
+	})
+
+	// 結果をメッセージとして作成
+	const teamMessage = teams
+		.map((team, index) => `チーム ${index + 1}: ${team.join(', ')}`)
+		.join('\n')
+
+	// 結果を返信
+	await interaction.reply({
+		content: `チーム分けの結果:\n${teamMessage}`,
+	})
 }
