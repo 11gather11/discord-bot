@@ -28,7 +28,6 @@ const MemberCounts = async (client: Client) => {
 
 		const newChannelName = `👥メンバー数:${memberCount}`
 		await memberCountChannel.setName(newChannelName)
-		console.log('メンバー数を更新しました:', memberCount)
 	} catch (error) {
 		console.error('メンバー数の更新に失敗しました:', error)
 	}
@@ -37,7 +36,7 @@ const MemberCounts = async (client: Client) => {
 export const updateMemberCounts = async (client: Client) => {
 	// ボット起動時にメンバー数を更新
 	await MemberCounts(client)
-
+	console.log('メンバー数を更新の観測を開始します')
 	// 1時間ごとにメンバー数を更新
 	setInterval(
 		async () => {
