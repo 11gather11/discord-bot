@@ -7,8 +7,8 @@ import type {
 interface Command {
 	data: RESTPostAPIApplicationCommandsJSONBody
 	execute: (interaction: CommandInteraction) => Promise<void> | void
+	cooldown?: number
 }
-
 declare module 'discord.js' {
 	interface Client {
 		commands: Collection<string, Command>

@@ -8,6 +8,8 @@ import {
 // 環境変数
 const { DISCORD_FREE_VOICE_CHANNEL_ID } = process.env
 
+export const cooldown = 10
+
 // コマンドの設定をエクスポート
 export const data = new SlashCommandBuilder()
 	.setName('create_free_channels')
@@ -34,7 +36,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 	// コマンド実行者を取得
 	const member = interaction.guild?.members.cache.get(interaction.user.id)?.displayName
 
-	const name = interaction.options.getString('名前') ?? `${member} のフリーチャンネル`
+	const name = interaction.options.getString('名前') ?? `🔊${member}のVC`
 	const userLimit = interaction.options.getNumber('人数') ?? undefined
 
 	// ボイスチャンネルの作成
