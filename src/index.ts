@@ -16,6 +16,7 @@ const client = new Client({
 	],
 })
 
+// コマンドを格納するコレクション
 client.commands = new Collection()
 
 //初期化
