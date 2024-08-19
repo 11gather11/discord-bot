@@ -34,8 +34,13 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	const totalTime = interaction.options.getInteger('time') ?? 60
 
 	if (options.length < 2 || options.length > 10) {
+		const errorEmbed = new EmbedBuilder()
+			.setTitle('エラー')
+			.setDescription('選択肢は2つ以上10以下で指定してください。')
+			.setColor(0xff0000) // 赤色
+
 		return interaction.reply({
-			content: '選択肢は2つ以上10以下で指定してください。',
+			embeds: [errorEmbed],
 			ephemeral: true,
 		})
 	}

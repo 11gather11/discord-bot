@@ -1,4 +1,9 @@
-import { type ChatInputCommandInteraction, type GuildMember, SlashCommandBuilder } from 'discord.js'
+import {
+	type ChatInputCommandInteraction,
+	EmbedBuilder,
+	type GuildMember,
+	SlashCommandBuilder,
+} from 'discord.js'
 
 export const data = new SlashCommandBuilder()
 	.setName('team')
@@ -19,10 +24,16 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	// メンバーが参加しているボイスチャンネルを取得
 	const voiceChannel = member.voice.channel
 
+	// エラー用の埋め込みメッセージ
+	const errorEmbed = new EmbedBuilder().setTitle('エラー').setColor(0xff0000) // 赤色
+
 	// ボイスチャンネルが取得できなかった場合
 	if (!voiceChannel) {
+		// 埋め込みメッセージを設定して返信
+		errorEmbed.setDescription('ボイスチャンネルに参加してからコマンドを実行してください。')
+
 		await interaction.reply({
-			content: 'ボイスチャンネルに参加してからコマンドを実行してください。',
+			embeds: [errorEmbed],
 			ephemeral: true,
 		})
 		return
@@ -36,8 +47,13 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
 	// メンバーがチーム数より少ない場合
 	if (members.length < teamCount) {
+		// 埋め込みメッセージを設定して返信
+		errorEmbed.setDescription(
+			`チーム数 (${teamCount}) よりメンバーが少ないため、チーム分けできません。`
+		)
+
 		return interaction.reply({
-			content: `チーム数 (${teamCount}) よりメンバーが少ないため、チーム分けできません。`,
+			embeds: [errorEmbed],
 			ephemeral: true,
 		})
 	}
@@ -54,13 +70,18 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 		teams[index % teamCount].push(member.displayName)
 	})
 
-	// 結果をメッセージとして作成
-	const teamMessage = teams
-		.map((team, index) => `チーム ${index + 1}: ${team.join(', ')}`)
-		.join('\n')
+	// 埋め込みメッセージの作成
+	const embed = new EmbedBuilder()
+		.setTitle('チーム分けの結果')
+		.setColor(0x00ae86) // 緑色
+		.setDescription('以下のチームに分けられました:')
+
+	teams.forEach((team, index) => {
+		embed.addFields({ name: `チーム ${index + 1}`, value: team.join('\n'), inline: false })
+	})
 
 	// 結果を返信
 	await interaction.reply({
-		content: `チーム分けの結果:\n${teamMessage}`,
+		embeds: [embed],
 	})
 }
