@@ -3,6 +3,7 @@ import {
 	ButtonBuilder,
 	ButtonStyle,
 	type ChatInputCommandInteraction,
+	EmbedBuilder,
 	type Interaction,
 	type MessageActionRowComponentBuilder,
 	SlashCommandBuilder,
@@ -90,8 +91,13 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 		...createJankenButtons()
 	)
 
-	interaction.reply({
-		content: `じゃんけん！選んでください: (残り時間: ${time}秒)`,
+	const embed = new EmbedBuilder()
+		.setTitle('じゃんけん！')
+		.setDescription(`選んでください: (残り時間: ${time}秒)`)
+		.setColor(0x00ae86)
+
+	await interaction.reply({
+		embeds: [embed],
 		components: [actionRow],
 		fetchReply: true,
 	})
@@ -102,7 +108,8 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	let remainingTime = time
 	const countdownInterval = setInterval(() => {
 		remainingTime -= 1
-		interaction.editReply(`じゃんけん！選んでください: (残り時間: ${remainingTime}秒)`)
+		embed.setDescription(`選んでください: (残り時間: ${remainingTime}秒)`)
+		interaction.editReply({ embeds: [embed], components: [actionRow] })
 	}, 1000)
 
 	collector?.on('collect', async (i) => {
@@ -117,7 +124,8 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 		clearInterval(countdownInterval)
 
 		if (choices.size === 0) {
-			await interaction.editReply({ content: '誰も参加しませんでした。', components: [] })
+			embed.setDescription('誰も参加しませんでした。')
+			await interaction.editReply({ embeds: [embed], components: [] })
 			return
 		}
 
@@ -135,8 +143,9 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 			? '\n\n引き分けです!'
 			: `\n\n**勝者:** ${outcomes.winners.join(', ')}`
 
+		embed.setDescription(resultMessage)
 		await interaction.editReply({
-			content: resultMessage,
+			embeds: [embed],
 			components: [],
 		})
 	})
