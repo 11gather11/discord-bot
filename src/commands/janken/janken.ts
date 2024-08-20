@@ -6,7 +6,6 @@ import {
 	EmbedBuilder,
 	type Interaction,
 	type MessageActionRowComponentBuilder,
-	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js'
 
@@ -22,11 +21,6 @@ export const data = new SlashCommandBuilder()
 			.setMinValue(5)
 			.setMaxValue(60)
 	)
-
-// 開発環境の場合、デフォルトの権限を設定
-if (process.env.NODE_ENV === 'development') {
-	data.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-}
 
 // じゃんけんボタンの作成
 const createJankenButtons = () => {

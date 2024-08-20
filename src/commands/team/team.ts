@@ -2,7 +2,6 @@ import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	type GuildMember,
-	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js'
 
@@ -17,11 +16,6 @@ export const data = new SlashCommandBuilder()
 			.setMinValue(2)
 			.setMaxValue(10)
 	)
-
-// 開発環境の場合、デフォルトの権限を設定
-if (process.env.NODE_ENV === 'development') {
-	data.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-}
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
 	// memberがGuildMember型であることを確認

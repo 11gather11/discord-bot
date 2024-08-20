@@ -5,7 +5,6 @@ import {
 	ButtonStyle,
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
-	PermissionFlagsBits,
 } from 'discord.js'
 
 // コマンドのデータ
@@ -27,11 +26,6 @@ export const data = new SlashCommandBuilder()
 			.setDescription('投票の時間を秒単位で入力してください (デフォルト: 60秒)')
 			.setRequired(false)
 	)
-
-// 開発環境の場合、デフォルトの権限を設定
-if (process.env.NODE_ENV === 'development') {
-	data.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-}
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
 	// 質問と選択肢を取得
