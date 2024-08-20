@@ -5,7 +5,7 @@
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
-		"dev": "bun src/index.ts",
+		"dev": "bun --env-file=.env.development src/index.ts",
 		"deployCommands": "bun src/deploy-commands.ts",
 		"deployGlobalCommands": "bun src/deploy-global-commands.ts",
 		"format": "biome format ./src/",
