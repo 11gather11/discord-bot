@@ -4,5 +4,7 @@ services:
     container_name: ts-meo-discord
     volumes:
       - .:/ts-meo-discord
-    command: ["bun", "src/index.ts"]
+    environment:
+      - NODE_ENV=production  # 本番環境を指定
+    command: ["bun", "src/index.ts"]  # 本番用の実行コマンド
     restart: unless-stopped
