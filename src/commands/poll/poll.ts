@@ -35,7 +35,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
 	if (options.length < 2 || options.length > 10) {
 		const errorEmbed = new EmbedBuilder()
-			.setTitle('エラー')
+			.setTitle('⛔️エラー')
 			.setDescription('選択肢は2つ以上10以下で指定してください。')
 			.setColor(0xff0000) // 赤色
 
@@ -50,7 +50,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
 	// 埋め込みメッセージを作成
 	const embed = new EmbedBuilder()
-		.setTitle('📊 投票')
+		.setTitle('📊投票')
 		.setDescription(question)
 		.setColor(0x00ae86)
 		.setFooter({ text: `残り時間: ${timeRemaining}秒` })
@@ -110,7 +110,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 		const totalVotes = votes.reduce((acc, curr) => acc + curr, 0)
 
 		const resultsEmbed = new EmbedBuilder()
-			.setTitle('📊 投票結果')
+			.setTitle('📊投票結果')
 			.setDescription(question)
 			.setColor(0x00ae86)
 

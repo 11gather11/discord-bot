@@ -92,7 +92,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	)
 
 	const embed = new EmbedBuilder()
-		.setTitle('じゃんけん！')
+		.setTitle('🫰🏻じゃんけん！')
 		.setDescription(`選んでください: (残り時間: ${time}秒)`)
 		.setColor(0x00ae86)
 
@@ -125,6 +125,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
 		if (choices.size === 0) {
 			embed.setDescription('誰も参加しませんでした。')
+			embed.setFooter({ text: 'じゃんけんを開始するにはもう一度コマンドを実行してください。' })
 			await interaction.editReply({ embeds: [embed], components: [] })
 			return
 		}

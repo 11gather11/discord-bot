@@ -43,7 +43,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 	if (!result.success) {
 		// エラーメッセージを埋め込みで表示
 		const errorEmbed = new EmbedBuilder()
-			.setTitle('エラー')
+			.setTitle('⛔️エラー')
 			.setDescription(result.message)
 			.setColor(0xff0000) // 赤色
 
@@ -56,7 +56,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 
 	// ダイス結果を埋め込みメッセージとして表示
 	const resultEmbed = new EmbedBuilder()
-		.setTitle('🎲 ダイスロール結果')
+		.setTitle('🎲ダイスロール結果')
 		.setDescription(result.message)
 		.setColor(0x00ae86) // 緑色
 

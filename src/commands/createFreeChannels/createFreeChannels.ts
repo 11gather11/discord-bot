@@ -1,6 +1,7 @@
 import {
 	ChannelType,
 	type ChatInputCommandInteraction,
+	EmbedBuilder,
 	SlashCommandBuilder,
 	type VoiceChannel,
 } from 'discord.js'
@@ -8,7 +9,7 @@ import {
 // 環境変数
 const { DISCORD_FREE_VOICE_CHANNEL_ID } = process.env
 
-export const cooldown = 10
+export const cooldown = 10 // 10秒
 
 // コマンドの設定をエクスポート
 export const data = new SlashCommandBuilder()
@@ -48,14 +49,29 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 	})) as VoiceChannel
 
 	if (!voiceChannel) {
-		await interaction.reply('チャンネルの作成中に問題が発生しました。')
+		// エラーメッセージを埋め込みで表示
+		const errorEmbed = new EmbedBuilder()
+			.setTitle('⛔️エラー')
+			.setDescription('チャンネルの作成中に問題が発生しました。')
+			.setColor(0xff0000) // 赤色
+
+		await interaction.reply({
+			embeds: [errorEmbed],
+			ephemeral: true,
+		})
 		return
 	}
 
 	const voiceChannelUrl = `https://discord.com/channels/${interaction.guildId}/${voiceChannel.id}`
 
+	// 埋め込みメッセージとして表示
+	const embed = new EmbedBuilder()
+		.setTitle('🗽フリーチャンネルを作成しました')
+		.setDescription(`[こちら](${voiceChannelUrl}) から参加してください。`)
+		.setColor(0x00ae86) // 緑色
+
 	await interaction.reply({
-		content: `チャンネルを作成しました。\n[こちら](${voiceChannelUrl}) から参加してください。`,
+		embeds: [embed],
 		ephemeral: true,
 	})
 
@@ -71,7 +87,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 			if (voiceChannel.members.size === 0) {
 				clearInterval(checkInterval) // 監視の停止
 
-				// VCとカテゴリーを削除
+				// VCを削除
 				await voiceChannel.delete()
 			}
 		},

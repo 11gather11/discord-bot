@@ -25,7 +25,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	const voiceChannel = member.voice.channel
 
 	// エラー用の埋め込みメッセージ
-	const errorEmbed = new EmbedBuilder().setTitle('エラー').setColor(0xff0000) // 赤色
+	const errorEmbed = new EmbedBuilder().setTitle('⛔️エラー').setColor(0xff0000) // 赤色
 
 	// ボイスチャンネルが取得できなかった場合
 	if (!voiceChannel) {
@@ -72,7 +72,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
 	// 埋め込みメッセージの作成
 	const embed = new EmbedBuilder()
-		.setTitle('チーム分けの結果')
+		.setTitle('🌓チーム分けの結果')
 		.setColor(0x00ae86) // 緑色
 		.setDescription('以下のチームに分けられました:')
 
