@@ -1,4 +1,4 @@
-import { Collection, Events, type Interaction } from 'discord.js'
+import { Collection, EmbedBuilder, Events, type Interaction } from 'discord.js'
 
 // イベント名
 export const name = Events.InteractionCreate
@@ -40,8 +40,14 @@ export const execute = async (interaction: Interaction) => {
 
 			if (now < expirationTime) {
 				const timeLeft = (expirationTime - now) / 1000
+
+				const embed = new EmbedBuilder()
+					.setTitle('🌀クールダウン')
+					.setDescription(`あと${timeLeft.toFixed(1)}秒待ってからこのコマンドを再度使用できます。`)
+					.setColor(0xffd700)
+
 				return interaction.reply({
-					content: `あと${timeLeft.toFixed(1)}秒待ってからこのコマンドを再度使用できます。`,
+					embeds: [embed],
 					ephemeral: true,
 				})
 			}
@@ -57,8 +63,14 @@ export const execute = async (interaction: Interaction) => {
 	} catch (error) {
 		// エラーが発生した場合はエラーを出力
 		console.error(error)
+
+		const errorEmbed = new EmbedBuilder()
+			.setTitle('⛔️エラー')
+			.setDescription('コマンドの実行中にエラーが発生しました')
+			.setColor(0xff0000)
+
 		await interaction.reply({
-			content: 'コマンドの実行中にエラーが発生しました',
+			embeds: [errorEmbed],
 			ephemeral: true,
 		})
 	}
