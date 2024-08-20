@@ -1,4 +1,4 @@
-# ts-discord-bot
+# ts-meo-discord
 
 To install dependencies:
 
