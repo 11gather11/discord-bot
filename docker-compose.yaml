@@ -1,0 +1,8 @@
+services:
+  ts-meo-discord:
+    build: .
+    container_name: ts-meo-discord
+    volumes:
+      - .:/ts-meo-discord
+    command: ["bun", "src/index.ts"]
+    restart: unless-stopped

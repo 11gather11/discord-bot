@@ -2,7 +2,7 @@
 FROM oven/bun:latest
 
 # 作業ディレクトリを設定
-WORKDIR /app
+WORKDIR /ts-meo-discord
 
 # package.jsonとbun.lockbをコピー
 COPY package.json ./
