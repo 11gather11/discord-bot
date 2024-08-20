@@ -43,7 +43,6 @@ const getLatestYouTubeVideo = async (channelId: string) => {
 		return items.length > 0 ? items[0] : null
 	} catch (error) {
 		console.error('YouTube最新動画取得エラー:', error)
-		return null
 	}
 }
 

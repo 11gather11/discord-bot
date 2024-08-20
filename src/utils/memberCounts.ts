@@ -36,7 +36,7 @@ const MemberCounts = async (client: Client) => {
 export const updateMemberCounts = async (client: Client) => {
 	// ボット起動時にメンバー数を更新
 	await MemberCounts(client)
-	console.log('メンバー数を更新の観測を開始します')
+	console.log('メンバー数更新の観測を開始します')
 	// 1時間ごとにメンバー数を更新
 	setInterval(
 		async () => {
