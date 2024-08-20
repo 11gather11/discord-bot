@@ -1,4 +1,9 @@
-import { type ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
+import {
+	type ChatInputCommandInteraction,
+	EmbedBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from 'discord.js'
 import { toHalfWidth } from '../../utils/toHalfWidth'
 
 // コマンドの設定をエクスポート
@@ -31,6 +36,11 @@ export const data = new SlashCommandBuilder()
 					.setRequired(true)
 			)
 	)
+
+// 開発環境の場合、デフォルトの権限を設定
+if (process.env.NODE_ENV === 'development') {
+	data.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+}
 
 // コマンドが実行されたときの処理
 export const execute = async (interaction: ChatInputCommandInteraction): Promise<void> => {

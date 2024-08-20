@@ -2,6 +2,7 @@ import {
 	ChannelType,
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
+	PermissionFlagsBits,
 	SlashCommandBuilder,
 	type VoiceChannel,
 } from 'discord.js'
@@ -31,6 +32,11 @@ export const data = new SlashCommandBuilder()
 			.setMinValue(2)
 			.setMaxValue(99)
 	)
+
+// 開発環境の場合、デフォルトの権限を設定
+if (process.env.NODE_ENV === 'development') {
+	data.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+}
 
 // コマンドが実行されたときの処理
 export const execute = async (interaction: ChatInputCommandInteraction): Promise<void> => {
