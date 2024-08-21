@@ -18,9 +18,21 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Create remote directory if not exists
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "mkdir -p /home/${{ secrets.EC2_USER }}/app"
+
+      - name: Clean up existing files on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "rm -rf /home/${{ secrets.EC2_USER }}/app/*"
+
       - name: Copy files to EC2
         run: |
           scp -o StrictHostKeyChecking=no -r * ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/app
+
+      - name: Copy .env file to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no .env.production ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/app/.env.production
 
       - name: Deploy application
         run: |
