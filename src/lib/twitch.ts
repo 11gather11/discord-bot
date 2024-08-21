@@ -1,10 +1,9 @@
 import axios from 'axios'
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'
-
 import TwitterApi from 'twitter-api-v2'
 import type { TwitchGame, TwitchStream } from '../types/twitch'
 
-//環境変数
+// 環境変数
 const {
 	TWITCH_CLIENT_ID,
 	TWITCH_CLIENT_SECRET,
@@ -39,8 +38,10 @@ const postTweet = async ({ userLogin, userName, title, gameName }: PostTweet) =>
 		const tweetText = `${userName}がTwitchで配信を開始しました! \n\n🎮 ゲーム: ${gameName}\n📺 タイトル: ${title}\n\n視聴はこちら: https://www.twitch.tv/${userLogin} \n\n#Twitch #配信`
 		await twitterClient.v2.tweet(tweetText)
 		console.log('ツイートを投稿しました')
-	} catch {
-		throw new Error('ツイートの投稿に失敗しました:')
+	} catch (error) {
+		console.error('ツイートの投稿に失敗しました:', (error as Error).message)
+		// エラー発生時に例外をスロー
+		throw new Error('ツイートの投稿に失敗しました')
 	}
 }
 
@@ -69,35 +70,28 @@ const sendNotification = async ({
 	gameImageUrl,
 }: SendNotification) => {
 	try {
+		// Discordのチャンネルを取得
 		const channel = await client.channels.fetch(DISCORD_STREAMS_CHANNEL_ID as string)
 		if (channel instanceof TextChannel) {
 			const embed = new EmbedBuilder()
-				// 埋め込みの左側の色を設定
-				.setColor(0x9146ff)
-				// タイトルを設定
-				.setTitle(`${title}`)
-				// タイトルをクリックするとTwitchにリンク
-				.setURL(`https://www.twitch.tv/${userLogin}`)
-				// 名前を設定
+				.setColor(0x9146ff) // 埋め込みの左側の色を設定
+				.setTitle(`${title}`) // タイトルを設定
+				.setURL(`https://www.twitch.tv/${userLogin}`) // タイトルをクリックするとTwitchにリンク
 				.setAuthor({
 					name: userName,
 					url: `https://www.twitch.tv/${userLogin}`,
-				})
-				// 埋め込みの右上に表示される画像を設定
-				.setThumbnail(gameImageUrl)
-				// 埋め込みのフィールドを追加
+				}) // 名前を設定
+				.setThumbnail(gameImageUrl) // 埋め込みの右上に表示される画像を設定
 				.addFields(
 					{ name: '👥 視聴者数', value: viewerCount.toString(), inline: true },
 					{ name: '🎮 ゲーム', value: gameName, inline: true }
-				)
-				// サムネイルを大きな画像として表示
-				.setImage(thumbnailUrl)
-				// 埋め込みの下部に表示されるフッターを設定
+				) // 埋め込みのフィールドを追加
+				.setImage(thumbnailUrl) // サムネイルを大きな画像として表示
 				.setFooter({
 					text: `配信開始: ${startedAt}`,
 					// biome-ignore lint/style/useNamingConvention: <explanation>
 					iconURL: 'https://static.twitchcdn.net/assets/favicon-32-e29e246c157142c94346.png',
-				})
+				}) // 埋め込みの下部に表示されるフッターを設定
 			// メッセージを送信
 			await channel.send({
 				content: `@everyone ${userName}がTwitchで配信を開始しました!`,
@@ -112,10 +106,13 @@ const sendNotification = async ({
 				gameName: gameName,
 			})
 		} else {
+			// テキストチャンネルでない場合にエラーをスロー
 			throw new Error('指定されたチャンネルIDはテキストチャンネルではありません')
 		}
 	} catch (error) {
-		throw error as Error
+		// エラー発生時に例外をスローしつつ、エラーログを出力
+		console.error('Twitch配信通知エラー:', (error as Error).message)
+		throw new Error('Twitch配信通知エラーが発生しました')
 	}
 }
 
@@ -132,8 +129,11 @@ const getTwitchAccessToken = async () => {
 				grant_type: 'client_credentials',
 			},
 		})
+		// アクセストークンを保存
 		accessToken = response.data.access_token
-	} catch {
+	} catch (error) {
+		// アクセストークン取得失敗時のエラーログを出力
+		console.error('Twitchアクセストークンの取得に失敗しました:', (error as Error).message)
 		throw new Error('Twitchアクセストークンの取得に失敗しました')
 	}
 }
@@ -153,9 +153,10 @@ const getTwitchGame = async (gameId: string): Promise<TwitchGame> => {
 		})
 
 		const twitchGame: TwitchGame = response.data.data[0]
-
 		return twitchGame
-	} catch {
+	} catch (error) {
+		// ゲーム情報取得失敗時のエラーログを出力
+		console.error('Twitchゲーム情報の取得に失敗しました:', (error as Error).message)
 		throw new Error('Twitchゲーム情報の取得に失敗しました')
 	}
 }
@@ -176,9 +177,10 @@ const isStreaming = async (userLogin: string): Promise<TwitchStream | undefined>
 		})
 
 		const twitchStream: TwitchStream = response.data.data[0]
-
 		return response.data.data.length > 0 ? twitchStream : undefined
-	} catch {
+	} catch (error) {
+		// 配信情報取得失敗時のエラーログを出力
+		console.error('Twitch配信情報の取得に失敗しました:', (error as Error).message)
 		throw new Error('Twitch配信情報の取得に失敗しました')
 	}
 }
@@ -188,33 +190,28 @@ const checkStream = async (client: Client, userLogin: string) => {
 	try {
 		// 通知済みフラグが未セットの場合はセット
 		if (!streamingNotified.has(userLogin)) {
-			// 通知済みフラグをfalseにセット
 			streamingNotified.set(userLogin, false)
 		}
+
 		// 配信状況を取得
 		const stream = await isStreaming(userLogin)
 		// 通知済みフラグを取得
 		const notified = streamingNotified.get(userLogin)
+
 		// 配信中かつ未通知の場合は通知
 		if (stream && !notified) {
 			// 配信情報を取得
 			const title = stream.title
-			// ユーザー名を取得
 			const userName = stream.user_name
-			// 視聴者数を取得
 			const viewerCount = stream.viewer_count
-			// 配信開始時刻を取得
 			const startedAt = new Date(stream.started_at).toLocaleString('ja-JP')
-			// ゲーム情報を取得
 			const twitchGame = await getTwitchGame(stream.game_id)
-			// ゲーム名を取得
 			const gameName = twitchGame.name
-			// ゲーム画像URLを取得
 			const gameImageUrl = twitchGame.box_art_url
 				.replace('{width}', '144')
 				.replace('{height}', '192')
-			// サムネイルURLを取得
 			const thumbnailUrl = stream.thumbnail_url.replace('{width}', '640').replace('{height}', '360')
+
 			// 通知を送信
 			await sendNotification({
 				client: client,
@@ -227,15 +224,17 @@ const checkStream = async (client: Client, userLogin: string) => {
 				thumbnailUrl: thumbnailUrl,
 				gameImageUrl: gameImageUrl,
 			})
+
 			// 通知済みフラグをtrueにセット
 			streamingNotified.set(userLogin, true)
-			// 配信中でなく通知済みの場合は通知済みフラグをfalseにセット
 		} else if (!stream && notified) {
-			// 通知済みフラグをfalseにセット
+			// 配信中でなく通知済みの場合は通知済みフラグをfalseにセット
 			streamingNotified.set(userLogin, false)
 		}
 	} catch (error) {
-		throw (error as Error).message
+		// 配信チェック中のエラーログを出力
+		console.error('Twitch配信チェックエラー:', (error as Error).message)
+		throw new Error('Twitch配信チェック中にエラーが発生しました')
 	}
 }
 
@@ -253,10 +252,12 @@ export const startTwitchLiveNotification = async (client: Client, userLogin: str
 			try {
 				await checkStream(client, userLogin)
 			} catch (error) {
+				// 定期チェック中のエラーログを出力
 				console.error('Twitchライブ通知エラー:', (error as Error).message)
 			}
 		}, 1000 * 60)
 	} catch (error) {
+		// 初期化エラー時のエラーログを出力
 		console.error('Twitchライブ通知初期化エラー:', (error as Error).message)
 	}
 }
