@@ -75,7 +75,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 		ephemeral: true,
 	})
 
-	// 10分間の監視を開始
+	// 5分間の監視を開始
 	const checkInterval = setInterval(
 		async () => {
 			// VCが削除された場合
@@ -91,6 +91,6 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 				await voiceChannel.delete()
 			}
 		},
-		3 * 60 * 1000
-	) // 3分
+		5 * 60 * 1000
+	)
 }
