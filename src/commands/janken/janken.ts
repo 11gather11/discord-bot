@@ -4,6 +4,7 @@ import {
 	ButtonStyle,
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
+	type GuildMember,
 	type Interaction,
 	type MessageActionRowComponentBuilder,
 	SlashCommandBuilder,
@@ -13,34 +14,236 @@ import {
 export const data = new SlashCommandBuilder()
 	.setName('janken')
 	.setDescription('じゃんけんゲームを開始します。')
-	.addIntegerOption((option) =>
-		// 何秒間じゃんけんを行うかを指定するオプション
-		option
-			.setName('秒数')
-			.setDescription('じゃんけんを行う時間を秒単位で指定します。(デフォルト: 10秒)')
-			.setMinValue(5)
-			.setMaxValue(60)
+	.addSubcommand((subcommand) =>
+		subcommand
+			.setName('normal')
+			.setDescription('通常のじゃんけんゲームを開始します。')
+			.addIntegerOption((option) =>
+				option
+					.setName('秒数')
+					.setDescription('じゃんけんを行う時間を秒単位で指定します。(デフォルト: 10秒)')
+					.setMinValue(5)
+					.setMaxValue(60)
+			)
 	)
+	.addSubcommand((subcommand) =>
+		subcommand
+			.setName('vc')
+			.setDescription('同じVCにいるユーザーだけが参加できるじゃんけんを開始します。')
+			.addIntegerOption((option) =>
+				option
+					.setName('秒数')
+					.setDescription('じゃんけんを行う時間を秒単位で指定します。(デフォルト: 10秒)')
+					.setMinValue(5)
+					.setMaxValue(60)
+			)
+	)
+
+// コマンドが実行されたときの処理
+export const execute = async (interaction: ChatInputCommandInteraction) => {
+	const subcommand = interaction.options.getSubcommand() // サブコマンドを取得
+	const time = interaction.options.getInteger('秒数') ?? 10 // 秒数を取得、デフォルトは10秒
+	const timeInMs = time * 1000 // 秒をミリ秒に変換
+
+	if (subcommand === 'normal') {
+		// 通常のじゃんけんを開始
+		await startJanken(interaction, timeInMs)
+	} else if (subcommand === 'vc') {
+		// VC限定のじゃんけんを開始
+		const member = interaction.member as GuildMember
+		const voiceChannel = member.voice.channel // メンバーのボイスチャンネルを取得
+
+		// ボイスチャンネルが取得できなかった場合
+		if (!voiceChannel) {
+			// エラーメッセージを返信
+			await sendErrorReply(
+				interaction,
+				'ボイスチャンネルに参加してからコマンドを実行してください。'
+			)
+			return
+		}
+
+		const membersInVc = voiceChannel.members // ボイスチャンネル内のメンバーを取得
+
+		if (membersInVc.size === 0) {
+			// VCに誰もいない場合のエラーメッセージ
+			await sendErrorReply(interaction, '指定されたボイスチャンネルには誰もいません。')
+			return
+		}
+
+		// VCにいるメンバーのIDを収集
+		const allowedUserIds = membersInVc.map((member) => member.id)
+		await startJanken(interaction, timeInMs, allowedUserIds) // VC限定のじゃんけんを開始
+	}
+}
+
+// じゃんけんの開始処理
+const startJanken = async (
+	interaction: ChatInputCommandInteraction,
+	timeInMs: number,
+	allowedUserIds?: string[]
+) => {
+	// VC参加者の情報を取得し保持する
+	const membersInVc = allowedUserIds ? allowedUserIds.map((id) => `<@${id}>`) : undefined
+	const actionRow = createJankenButtons() // じゃんけんボタンを作成
+	const embed = createInitialEmbed(timeInMs / 1000, membersInVc) // 初期のEmbedメッセージを作成
+
+	await interaction.reply({
+		embeds: [embed],
+		components: [actionRow],
+		fetchReply: true,
+	})
+
+	// じゃんけんの選択肢を収集
+	const choices = await collectChoices(interaction, timeInMs, allowedUserIds, membersInVc)
+
+	// 誰も参加しなかった場合の処理
+	if (choices.size === 0) {
+		await endJankenWithNoParticipants(interaction, embed)
+		return
+	}
+
+	// 結果を計算して表示
+	const outcomes = calculateOutcome(Array.from(choices.entries()), interaction)
+	await displayResults(interaction, embed, outcomes)
+}
 
 // じゃんけんボタンの作成
 const createJankenButtons = () => {
-	return [
+	return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
 		new ButtonBuilder().setCustomId('グー').setLabel('✊🏼 グー').setStyle(ButtonStyle.Primary),
 		new ButtonBuilder().setCustomId('チョキ').setLabel('✌🏼 チョキ').setStyle(ButtonStyle.Success),
-		new ButtonBuilder().setCustomId('パー').setLabel('🖐🏼 パー').setStyle(ButtonStyle.Danger),
-	]
+		new ButtonBuilder().setCustomId('パー').setLabel('🖐🏼 パー').setStyle(ButtonStyle.Danger)
+	)
 }
 
-// じゃんけんの結果を計算する関数
-const calculateOutcome = (results: { userId: string; displayName?: string; choice: string }[]) => {
-	const choiceCounts = countChoices(results)
+// 初期表示用のEmbedを作成
+const createInitialEmbed = (time: number, membersInVc?: string[]) => {
+	// VC参加者がいる場合にそのリストを表示
+	const description = membersInVc
+		? `VC参加者: ${membersInVc.join(', ')}\n選んでください: (残り時間: ${time}秒)`
+		: `選んでください: (残り時間: ${time}秒)`
+
+	return new EmbedBuilder()
+		.setTitle('🫰🏻じゃんけん！')
+		.setDescription(description)
+		.setColor(0x00ae86)
+}
+
+// 選択肢を収集
+const collectChoices = async (
+	interaction: ChatInputCommandInteraction,
+	timeInMs: number,
+	allowedUserIds?: string[],
+	membersInVc?: string[]
+): Promise<Map<string, string>> => {
+	const filter = (i: Interaction) => i.isButton()
+	const collector = interaction.channel?.createMessageComponentCollector({ filter, time: timeInMs })
+	const choices = new Map<string, string>()
+	let remainingTime = timeInMs / 1000
+
+	// カウントダウンを表示
+	const countdownInterval = setInterval(() => {
+		remainingTime -= 1
+		const embed = createInitialEmbed(remainingTime, membersInVc) // VC参加者を保持
+		interaction.editReply({ embeds: [embed] })
+	}, 1000)
+
+	// ボタンがクリックされた時の処理
+	collector?.on('collect', async (i) => {
+		if (!i.isButton()) {
+			return
+		}
+
+		// 参加が許可されていないユーザーがボタンを押した場合の処理
+		if (allowedUserIds && !allowedUserIds.includes(i.user.id)) {
+			const errorEmbed = new EmbedBuilder()
+				.setTitle('エラー')
+				.setDescription('あなたはじゃんけんに参加できません。')
+				.setColor(0xff0000)
+
+			await i.reply({
+				embeds: [errorEmbed],
+				ephemeral: true, // メッセージを押した本人にのみ表示
+			})
+			return
+		}
+
+		// 参加者の選択肢を保存
+		choices.set(i.user.id, i.customId)
+		await i.deferUpdate()
+	})
+
+	// ボタンのクリックが終了した時の処理
+	await new Promise<void>((resolve) => collector?.on('end', resolve))
+
+	clearInterval(countdownInterval) // カウントダウンを停止
+	return choices
+}
+
+// 参加者がいなかった場合の処理
+const endJankenWithNoParticipants = async (
+	interaction: ChatInputCommandInteraction,
+	embed: EmbedBuilder
+) => {
+	embed.setDescription('誰も参加しませんでした。')
+	embed.setFooter({ text: 'じゃんけんを開始するにはもう一度コマンドを実行してください。' })
+	await interaction.editReply({ embeds: [embed], components: [] })
+}
+
+// 結果を計算
+const calculateOutcome = (
+	results: [string, string][],
+	interaction: ChatInputCommandInteraction
+): Outcomes => {
+	const formattedResults = results.map(([userId, choice]) => ({
+		userId,
+		displayName: interaction.guild?.members.cache.get(userId)?.displayName,
+		choice,
+		emoji: { グー: '✊🏼', チョキ: '✌🏼', パー: '🖐🏼' }[choice] || '❓', // デフォルト値を追加
+	}))
+
+	// 結果を集計して、あいこかどうかを判断
+	const choiceCounts = countChoices(formattedResults)
 	const isDraw = determineIfDraw(choiceCounts)
-	const winners = isDraw ? [] : determineWinners(results, choiceCounts)
-	return { winners, draw: isDraw }
+	const winners = isDraw ? [] : determineWinners(formattedResults, choiceCounts)
+	return { results: formattedResults, winners, draw: isDraw }
+}
+
+// 結果を表示
+const displayResults = async (
+	interaction: ChatInputCommandInteraction,
+	embed: EmbedBuilder,
+	outcomes: Outcomes
+) => {
+	let resultMessage = outcomes.results.map((r) => `${r.displayName}: ${r.emoji}`).join('\n')
+
+	resultMessage += outcomes.draw
+		? '\n\n引き分けです!'
+		: `\n\n**勝者:** ${outcomes.winners.join(', ')}`
+
+	embed.setDescription(resultMessage)
+	await interaction.editReply({
+		embeds: [embed],
+		components: [],
+	})
+}
+
+// エラーメッセージを送信する関数
+const sendErrorReply = async (interaction: ChatInputCommandInteraction, message: string) => {
+	const errorEmbed = new EmbedBuilder()
+		.setTitle('エラー')
+		.setDescription(message)
+		.setColor(0xff0000)
+
+	await interaction.reply({
+		embeds: [errorEmbed],
+		ephemeral: true,
+	})
 }
 
 // 各選択肢の数を数える関数
-const countChoices = (results: { userId: string; choice: string }[]) => {
+const countChoices = (results: OutcomeResult[]) => {
 	return results.reduce(
 		(counts, result) => {
 			counts[result.choice as keyof typeof counts]++
@@ -63,7 +266,7 @@ const determineIfDraw = (counts: { グー: number; パー: number; チョキ: nu
 
 // 勝者を決定する関数
 const determineWinners = (
-	results: { userId: string; displayName?: string; choice: string }[],
+	results: OutcomeResult[],
 	counts: { グー: number; パー: number; チョキ: number }
 ) => {
 	const { グー, パー, チョキ } = counts
@@ -77,77 +280,22 @@ const determineWinners = (
 		winningChoice = 'チョキ'
 	}
 
+	// 勝者の名前をリストアップ
 	return results
 		.filter((result) => result.choice === winningChoice && result.displayName)
 		.map((result) => result.displayName as string)
 }
 
-// コマンドが実行されたときの処理
-export const execute = async (interaction: ChatInputCommandInteraction) => {
-	const time = interaction.options.getInteger('秒数') ?? 10
-	const timeInMs = time * 1000
+// 型定義
+interface OutcomeResult {
+	userId: string
+	displayName?: string
+	choice: string
+	emoji: string
+}
 
-	const actionRow = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
-		...createJankenButtons()
-	)
-
-	const embed = new EmbedBuilder()
-		.setTitle('🫰🏻じゃんけん！')
-		.setDescription(`選んでください: (残り時間: ${time}秒)`)
-		.setColor(0x00ae86)
-
-	await interaction.reply({
-		embeds: [embed],
-		components: [actionRow],
-		fetchReply: true,
-	})
-
-	const filter = (i: Interaction) => i.isButton()
-	const collector = interaction.channel?.createMessageComponentCollector({ filter, time: timeInMs })
-	const choices = new Map<string, string>()
-	let remainingTime = time
-	const countdownInterval = setInterval(() => {
-		remainingTime -= 1
-		embed.setDescription(`選んでください: (残り時間: ${remainingTime}秒)`)
-		interaction.editReply({ embeds: [embed], components: [actionRow] })
-	}, 1000)
-
-	collector?.on('collect', async (i) => {
-		if (!i.isButton()) {
-			return
-		}
-		choices.set(i.user.id, i.customId)
-		await i.deferUpdate()
-	})
-
-	collector?.on('end', async () => {
-		clearInterval(countdownInterval)
-
-		if (choices.size === 0) {
-			embed.setDescription('誰も参加しませんでした。')
-			embed.setFooter({ text: 'じゃんけんを開始するにはもう一度コマンドを実行してください。' })
-			await interaction.editReply({ embeds: [embed], components: [] })
-			return
-		}
-
-		const results = Array.from(choices.entries()).map(([userId, choice]) => ({
-			userId,
-			displayName: interaction.guild?.members.cache.get(userId)?.displayName,
-			choice,
-			emoji: { グー: '✊🏼', チョキ: '✌🏼', パー: '🖐🏼' }[choice],
-		}))
-
-		const outcomes = calculateOutcome(results)
-		let resultMessage = results.map((r) => `${r.displayName}: ${r.emoji}`).join('\n')
-
-		resultMessage += outcomes.draw
-			? '\n\n引き分けです!'
-			: `\n\n**勝者:** ${outcomes.winners.join(', ')}`
-
-		embed.setDescription(resultMessage)
-		await interaction.editReply({
-			embeds: [embed],
-			components: [],
-		})
-	})
+interface Outcomes {
+	results: OutcomeResult[]
+	winners: string[]
+	draw: boolean
 }
