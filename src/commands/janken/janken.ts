@@ -1,3 +1,4 @@
+import { sendErrorReply } from '@/utils/sendErrorReply'
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -56,19 +57,16 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 		// ボイスチャンネルが取得できなかった場合
 		if (!voiceChannel) {
 			// エラーメッセージを返信
-			await sendErrorReply(
+			return await sendErrorReply(
 				interaction,
 				'ボイスチャンネルに参加してからコマンドを実行してください。'
 			)
-			return
 		}
 
 		const membersInVc = voiceChannel.members // ボイスチャンネル内のメンバーを取得
 
 		if (membersInVc.size === 0) {
-			// VCに誰もいない場合のエラーメッセージ
-			await sendErrorReply(interaction, '指定されたボイスチャンネルには誰もいません。')
-			return
+			return await sendErrorReply(interaction, '指定されたボイスチャンネルには誰もいません。')
 		}
 
 		// VCにいるメンバーのIDを収集
@@ -99,8 +97,7 @@ const startJanken = async (
 
 	// 誰も参加しなかった場合の処理
 	if (choices.size === 0) {
-		await endJankenWithNoParticipants(interaction, embed)
-		return
+		return await endJankenWithNoParticipants(interaction, embed)
 	}
 
 	// 結果を計算して表示
@@ -157,16 +154,7 @@ const collectChoices = async (
 
 		// 参加が許可されていないユーザーがボタンを押した場合の処理
 		if (allowedUserIds && !allowedUserIds.includes(i.user.id)) {
-			const errorEmbed = new EmbedBuilder()
-				.setTitle('エラー')
-				.setDescription('あなたはじゃんけんに参加できません。')
-				.setColor(0xff0000)
-
-			await i.reply({
-				embeds: [errorEmbed],
-				ephemeral: true, // メッセージを押した本人にのみ表示
-			})
-			return
+			return await sendErrorReply(i, 'あなたはじゃんけんに参加できません。')
 		}
 
 		// 参加者の選択肢を保存
@@ -226,19 +214,6 @@ const displayResults = async (
 	await interaction.editReply({
 		embeds: [embed],
 		components: [],
-	})
-}
-
-// エラーメッセージを送信する関数
-const sendErrorReply = async (interaction: ChatInputCommandInteraction, message: string) => {
-	const errorEmbed = new EmbedBuilder()
-		.setTitle('エラー')
-		.setDescription(message)
-		.setColor(0xff0000)
-
-	await interaction.reply({
-		embeds: [errorEmbed],
-		ephemeral: true,
 	})
 }
 

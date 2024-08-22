@@ -1,3 +1,4 @@
+import { sendErrorReply } from '@/utils/sendErrorReply'
 import { SlashCommandBuilder } from '@discordjs/builders'
 import {
 	ActionRowBuilder,
@@ -34,15 +35,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	const totalTime = interaction.options.getInteger('time') ?? 60
 
 	if (options.length < 2 || options.length > 10) {
-		const errorEmbed = new EmbedBuilder()
-			.setTitle('⛔️エラー')
-			.setDescription('選択肢は2つ以上10以下で指定してください。')
-			.setColor(0xff0000) // 赤色
-
-		return interaction.reply({
-			embeds: [errorEmbed],
-			ephemeral: true,
-		})
+		return await sendErrorReply(interaction, '選択肢は2つ以上10以下で指定してください。')
 	}
 
 	// 投票時間を設定
