@@ -1,3 +1,4 @@
+import { sendErrorReply } from '@/utils/sendErrorReply'
 import {
 	ChannelType,
 	type ChatInputCommandInteraction,
@@ -49,17 +50,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 	})) as VoiceChannel
 
 	if (!voiceChannel) {
-		// エラーメッセージを埋め込みで表示
-		const errorEmbed = new EmbedBuilder()
-			.setTitle('⛔️エラー')
-			.setDescription('チャンネルの作成中に問題が発生しました。')
-			.setColor(0xff0000) // 赤色
-
-		await interaction.reply({
-			embeds: [errorEmbed],
-			ephemeral: true,
-		})
-		return
+		return await sendErrorReply(interaction, 'チャンネルの作成に失敗しました。')
 	}
 
 	const voiceChannelUrl = `https://discord.com/channels/${interaction.guildId}/${voiceChannel.id}`

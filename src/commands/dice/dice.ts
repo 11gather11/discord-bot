@@ -1,3 +1,4 @@
+import { sendErrorReply } from '@/utils/sendErrorReply'
 import { type ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 import { toHalfWidth } from '../../utils/toHalfWidth'
 
@@ -41,17 +42,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 	const isSecret = subcommand === 'secret'
 
 	if (!result.success) {
-		// エラーメッセージを埋め込みで表示
-		const errorEmbed = new EmbedBuilder()
-			.setTitle('⛔️エラー')
-			.setDescription(result.message)
-			.setColor(0xff0000) // 赤色
-
-		await interaction.reply({
-			embeds: [errorEmbed],
-			ephemeral: true, // 他のユーザーには見えない
-		})
-		return
+		return await sendErrorReply(interaction, result.message)
 	}
 
 	// ダイス結果を埋め込みメッセージとして表示

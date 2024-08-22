@@ -1,3 +1,4 @@
+import { sendErrorReply } from '@/utils/sendErrorReply'
 import { Collection, EmbedBuilder, Events, type Interaction } from 'discord.js'
 
 // イベント名
@@ -64,14 +65,6 @@ export const execute = async (interaction: Interaction) => {
 		// エラーが発生した場合はエラーを出力
 		console.error(error)
 
-		const errorEmbed = new EmbedBuilder()
-			.setTitle('⛔️エラー')
-			.setDescription('コマンドの実行中にエラーが発生しました')
-			.setColor(0xff0000)
-
-		await interaction.reply({
-			embeds: [errorEmbed],
-			ephemeral: true,
-		})
+		await sendErrorReply(interaction, 'コマンドの実行中にエラーが発生しました。')
 	}
 }
