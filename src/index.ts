@@ -1,10 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { Client, Collection, GatewayIntentBits } from 'discord.js'
+import { Client, Collection, GatewayIntentBits, type TextBasedChannel } from 'discord.js'
 
 // 環境変数
-const { DISCORD_TOKEN } = process.env
+const { DISCORD_TOKEN, DISCORD_ERROR_LOG_CHANNEL_ID } = process.env
 
 // 新しいClientインスタンスを作成
 const client = new Client({
@@ -24,6 +24,8 @@ const initialize = async () => {
 	await loadCommands()
 	await loadEvents()
 	await client.login(DISCORD_TOKEN)
+	// console.log と console.error をオーバライド
+	overrideConsole(client, DISCORD_ERROR_LOG_CHANNEL_ID as string)
 }
 
 // コマンドを読み込む
@@ -90,6 +92,48 @@ const loadEvents = async () => {
 			} else {
 				console.error(`イベントファイル ${file} に name または execute が見つかりません`)
 			}
+		}
+	}
+}
+
+// console.log と console.error をオーバーライドする関数
+const overrideConsole = (client: Client, logChannelId: string): void => {
+	// 元の console.log を保存
+	const originalConsoleLog = console.log
+	// 元の console.error を保存
+	const originalConsoleError = console.error
+
+	// console.log のオーバーライド
+	console.log = async (...args: unknown[]): Promise<void> => {
+		// 元の console.log を呼び出してログをコンソールに出力
+		originalConsoleLog.apply(console, args)
+		try {
+			// 指定されたチャンネルIDを使用してチャンネルを取得
+			const channel = await client.channels.fetch(logChannelId)
+			// チャンネルがテキストベースか確認し、ログ内容をチャンネルに送信
+			if (channel?.isTextBased()) {
+				;(channel as TextBasedChannel).send(args.join(' '))
+			}
+		} catch (error) {
+			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
+			originalConsoleLog('Failed to send log to channel:', error)
+		}
+	}
+
+	// console.error のオーバーライド
+	console.error = async (...args: unknown[]): Promise<void> => {
+		// 元の console.error を呼び出してエラーをコンソールに出力
+		originalConsoleError.apply(console, args)
+		try {
+			// 指定されたチャンネルIDを使用してチャンネルを取得
+			const channel = await client.channels.fetch(logChannelId)
+			// チャンネルがテキストベースか確認し、エラー内容をチャンネルに送信
+			if (channel?.isTextBased()) {
+				;(channel as TextBasedChannel).send(`:x: **Error:** ${args.join(' ')}`)
+			}
+		} catch (error) {
+			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
+			originalConsoleError('Failed to send error to channel:', error)
 		}
 	}
 }
