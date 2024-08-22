@@ -103,16 +103,35 @@ const overrideConsole = (client: Client, logChannelId: string): void => {
 	// 元の console.error を保存
 	const originalConsoleError = console.error
 
+	// タイムスタンプを取得する関数
+	const getTimestamp = (): string => {
+		const now = new Date()
+		// 日本時間に変換 (UTC+9)
+		const jstOffset = 9 * 60 * 60 * 1000
+		const jstDate = new Date(now.getTime() + jstOffset)
+
+		// yyyy/mm/dd hh:mm:ss 形式にフォーマット
+		const year = jstDate.getUTCFullYear()
+		const month = String(jstDate.getUTCMonth() + 1).padStart(2, '0')
+		const day = String(jstDate.getUTCDate()).padStart(2, '0')
+		const hours = String(jstDate.getUTCHours()).padStart(2, '0')
+		const minutes = String(jstDate.getUTCMinutes()).padStart(2, '0')
+		const seconds = String(jstDate.getUTCSeconds()).padStart(2, '0')
+
+		return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
+	}
+
 	// console.log のオーバーライド
 	console.log = async (...args: unknown[]): Promise<void> => {
+		const timestamp = getTimestamp()
 		// 元の console.log を呼び出してログをコンソールに出力
-		originalConsoleLog.apply(console, args)
+		originalConsoleLog.apply(console, [`[${timestamp}]`, ...args])
 		try {
 			// 指定されたチャンネルIDを使用してチャンネルを取得
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、ログ内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				;(channel as TextBasedChannel).send(args.join(' '))
+				;(channel as TextBasedChannel).send(`\`\`\`[${timestamp}] ${args.join(' ')}\`\`\``)
 			}
 		} catch (error) {
 			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
@@ -122,14 +141,15 @@ const overrideConsole = (client: Client, logChannelId: string): void => {
 
 	// console.error のオーバーライド
 	console.error = async (...args: unknown[]): Promise<void> => {
+		const timestamp = getTimestamp()
 		// 元の console.error を呼び出してエラーをコンソールに出力
-		originalConsoleError.apply(console, args)
+		originalConsoleError.apply(console, [`[${timestamp}]`, ...args])
 		try {
 			// 指定されたチャンネルIDを使用してチャンネルを取得
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、エラー内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				;(channel as TextBasedChannel).send(`:x: **Error:** ${args.join(' ')}`)
+				;(channel as TextBasedChannel).send(`\`\`\`[${timestamp}] ${args.join(' ')}\`\`\``)
 			}
 		} catch (error) {
 			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
