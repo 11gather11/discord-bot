@@ -95,8 +95,8 @@ export const startYouTubeVideoNotification = async (client: Client, channelId: s
 					console.error('YouTube動画通知エラー:', (error as Error).message)
 				}
 			},
-			1000 * 60 * 10
-		) // 10分ごとにチェック
+			1000 * 60 * 20
+		) // 20分ごとにチェック
 	} catch (error) {
 		console.error('YouTube動画通知初期化エラー:', (error as Error).message)
 	}
