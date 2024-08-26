@@ -75,13 +75,13 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 export const monitorExistingChannels = async (client: Client) => {
 	const guild = client.guilds.cache.first()
 	if (!guild) {
-		return
+		return console.error('ギルドが見つかりません')
 	}
 
 	// 指定されたカテゴリ内のチャンネルを取得
 	const categoryChannel = guild.channels.cache.get(DISCORD_FREE_VOICE_CHANNEL_ID as string)
 	if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {
-		return
+		return console.error('カテゴリが見つかりません')
 	}
 
 	const voiceChannels = categoryChannel.children.cache.filter(
@@ -101,7 +101,7 @@ const startVoiceChannelMonitoring = (voiceChannel: VoiceChannel) => {
 		async () => {
 			if (!voiceChannel.guild.channels.cache.has(voiceChannel.id)) {
 				clearInterval(checkInterval) // チャンネルが存在しない場合、監視を停止
-				return
+				return console.log('チャンネルが存在しません')
 			}
 
 			if (voiceChannel.members.size === 0) {
