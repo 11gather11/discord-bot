@@ -8,6 +8,8 @@ import {
 	EmbedBuilder,
 } from 'discord.js'
 
+export const cooldown = 10 // 10秒
+
 // コマンドのデータ
 export const data = new SlashCommandBuilder()
 	.setName('poll')
