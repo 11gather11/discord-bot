@@ -38,7 +38,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 	// コマンド実行者を取得
 	const member = interaction.guild?.members.cache.get(interaction.user.id)?.displayName
 
-	const name = interaction.options.getString('名前') ?? `🔊${member}のVC`
+	const name = `🔊${interaction.options.getString('名前') ?? `${member}のVC`}`
 	const userLimit = interaction.options.getNumber('人数') ?? undefined
 
 	// ボイスチャンネルの作成
