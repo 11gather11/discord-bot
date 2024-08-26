@@ -2,6 +2,7 @@ import { sendErrorReply } from '@/utils/sendErrorReply'
 import {
 	ChannelType,
 	type ChatInputCommandInteraction,
+	type Client,
 	EmbedBuilder,
 	SlashCommandBuilder,
 	type VoiceChannel,
@@ -66,22 +67,49 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 		ephemeral: true,
 	})
 
-	// 5分間の監視を開始
+	// ボイスチャンネルを監視
+	startVoiceChannelMonitoring(voiceChannel)
+}
+
+// ボットが起動した際に、既存のチャンネルを監視
+export const monitorExistingChannels = async (client: Client) => {
+	const guild = client.guilds.cache.first()
+	if (!guild) {
+		return
+	}
+
+	// 指定されたカテゴリ内のチャンネルを取得
+	const categoryChannel = guild.channels.cache.get(DISCORD_FREE_VOICE_CHANNEL_ID as string)
+	if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {
+		return
+	}
+
+	const voiceChannels = categoryChannel.children.cache.filter(
+		(channel) => channel.type === ChannelType.GuildVoice
+	) as Map<string, VoiceChannel>
+
+	// 各ボイスチャンネルを監視
+	for (const voiceChannel of voiceChannels.values()) {
+		startVoiceChannelMonitoring(voiceChannel)
+	}
+}
+
+// ボイスチャンネルを監視して、メンバーがいなくなったら削除
+const startVoiceChannelMonitoring = (voiceChannel: VoiceChannel) => {
 	const checkInterval = setInterval(
 		async () => {
-			// VCが削除された場合
-			if (!interaction.guild?.channels.cache.has(voiceChannel.id)) {
-				clearInterval(checkInterval) // 監視の停止
+			if (!voiceChannel.guild.channels.cache.has(voiceChannel.id)) {
+				clearInterval(checkInterval) // チャンネルが存在しない場合、監視を停止
 				return
 			}
-			// VCに誰もいない場合
+
 			if (voiceChannel.members.size === 0) {
 				clearInterval(checkInterval) // 監視の停止
 
-				// VCを削除
+				// チャンネルを削除
 				await voiceChannel.delete()
 			}
 		},
 		5 * 60 * 1000
-	)
+	) // 5分ごとにチェック
 }
