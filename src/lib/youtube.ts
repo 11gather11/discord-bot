@@ -7,7 +7,7 @@ const { YOUTUBE_API_KEY, DISCORD_VIDEOS_CHANNEL_ID } = process.env
 const lastVideoId = new Map<string, string>()
 
 // YouTubeの新しい動画の通知を送信
-const sendYouTubeVideoNotification = async (client: Client, title: string, videoId: string) => {
+const sendYouTubeVideoNotification = async (client: Client, videoId: string) => {
 	try {
 		const channel = await client.channels.fetch(DISCORD_VIDEOS_CHANNEL_ID as string)
 		if (!channel) {
@@ -16,8 +16,9 @@ const sendYouTubeVideoNotification = async (client: Client, title: string, video
 		}
 		if (channel.isTextBased()) {
 			await channel.send({
-				content: `@everyone 新しい動画が投稿されました！\nタイトル: ${title}\n視聴はこちら: https://www.youtube.com/watch?v=${videoId}`,
+				content: `@everyone 新しい動画が投稿されました！\nhttps://www.youtube.com/watch?v=${videoId}`,
 			})
+			console.log('YouTube動画通知を送信しました')
 		} else {
 			console.error('指定されたチャンネルIDはテキストチャンネルではありません')
 		}
@@ -36,6 +37,7 @@ const getLatestYouTubeVideo = async (channelId: string) => {
 				order: 'date',
 				maxResults: 1,
 				type: 'video',
+				eventType: 'completed',
 				key: YOUTUBE_API_KEY,
 			},
 		})
@@ -71,8 +73,7 @@ const checkYouTubeVideo = async (client: Client, channelId: string) => {
 			const videoId = latestVideo.id.videoId
 
 			if (lastVideoId.get(channelId) !== videoId) {
-				const title = latestVideo.snippet.title
-				await sendYouTubeVideoNotification(client, title, videoId)
+				await sendYouTubeVideoNotification(client, videoId)
 				lastVideoId.set(channelId, videoId)
 			}
 		}

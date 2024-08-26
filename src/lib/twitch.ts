@@ -97,7 +97,6 @@ const sendNotification = async ({
 				content: `@everyone ${userName}がTwitchで配信を開始しました!`,
 				embeds: [embed],
 			})
-			console.log('Discordに通知を送信しました')
 			// 配信開始時にTwitterにツイートを投稿
 			await postTweet({
 				userLogin: userLogin,
@@ -105,6 +104,7 @@ const sendNotification = async ({
 				title: title,
 				gameName: gameName,
 			})
+			console.log('Twitch配信通知を送信しました')
 		} else {
 			// テキストチャンネルでない場合にエラーをスロー
 			throw new Error('指定されたチャンネルIDはテキストチャンネルではありません')
