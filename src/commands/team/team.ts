@@ -1,3 +1,4 @@
+import { sendErrorReply } from '@/utils/sendErrorReply'
 import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
@@ -24,19 +25,12 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	// メンバーが参加しているボイスチャンネルを取得
 	const voiceChannel = member.voice.channel
 
-	// エラー用の埋め込みメッセージ
-	const errorEmbed = new EmbedBuilder().setTitle('⛔️エラー').setColor(0xff0000) // 赤色
-
 	// ボイスチャンネルが取得できなかった場合
 	if (!voiceChannel) {
-		// 埋め込みメッセージを設定して返信
-		errorEmbed.setDescription('ボイスチャンネルに参加してからコマンドを実行してください。')
-
-		await interaction.reply({
-			embeds: [errorEmbed],
-			ephemeral: true,
-		})
-		return
+		return await sendErrorReply(
+			interaction,
+			'ボイスチャンネルに参加してからコマンドを実行してください。'
+		)
 	}
 
 	// チーム数を取得（必須オプションなのでnullチェック不要）
@@ -47,15 +41,10 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
 	// メンバーがチーム数より少ない場合
 	if (members.length < teamCount) {
-		// 埋め込みメッセージを設定して返信
-		errorEmbed.setDescription(
+		return await sendErrorReply(
+			interaction,
 			`チーム数 (${teamCount}) よりメンバーが少ないため、チーム分けできません。`
 		)
-
-		return interaction.reply({
-			embeds: [errorEmbed],
-			ephemeral: true,
-		})
 	}
 
 	// メンバーをランダムにシャッフル

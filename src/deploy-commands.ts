@@ -37,12 +37,6 @@ export const deployCommands = async () => {
 	const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN)
 	;(async () => {
 		try {
-			if (process.env.NODE_ENV === 'development') {
-				console.log(`開発環境用 ${commands.length} 個のアプリケーションコマンドを登録します。`)
-			} else {
-				console.log(`本番環境用 ${commands.length} 個のアプリケーションコマンドを登録します。`)
-			}
-
 			const data = (await rest.put(
 				Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID),
 				{ body: commands }
@@ -57,5 +51,3 @@ export const deployCommands = async () => {
 		}
 	})()
 }
-
-deployCommands().catch(console.error)

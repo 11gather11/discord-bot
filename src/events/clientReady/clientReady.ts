@@ -1,3 +1,4 @@
+import { deployCommands } from '@/deploy-commands'
 import { type Client, Events } from 'discord.js'
 import { startTwitchLiveNotification } from '../../lib/twitch'
 import { startYouTubeVideoNotification } from '../../lib/youtube'
@@ -13,8 +14,9 @@ export const name = Events.ClientReady
 
 export const once = true
 
-export const execute = (client: Client) => {
+export const execute = async (client: Client) => {
 	console.log(`ログイン成功: ${client.user?.tag}`)
+	await deployCommands()
 	startTwitchLiveNotification(client, 'vvvmeovvv')
 	startYouTubeVideoNotification(client, YOUTUBE_CHANNEL_ID)
 	updateMemberCounts(client)
