@@ -28,6 +28,8 @@ export const data = new SlashCommandBuilder()
 			.setName('time')
 			.setDescription('投票の時間を秒単位で入力してください (デフォルト: 60秒)')
 			.setRequired(false)
+			.setMinValue(10)
+			.setMaxValue(86400)
 	)
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
@@ -43,12 +45,24 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	// 投票時間を設定
 	let timeRemaining = totalTime
 
+	// 時間を日、時、分、秒に変換する関数
+	const formatTime = (totalSeconds: number) => {
+		const days = Math.floor(totalSeconds / (24 * 60 * 60))
+		const remainingAfterDays = totalSeconds % (24 * 60 * 60)
+		const hours = Math.floor(remainingAfterDays / (60 * 60))
+		const remainingAfterHours = remainingAfterDays % (60 * 60)
+		const minutes = Math.floor(remainingAfterHours / 60)
+		const seconds = remainingAfterHours % 60
+
+		return `${days}日 ${hours}時間 ${minutes}分 ${seconds}秒`
+	}
+
 	// 埋め込みメッセージを作成
 	const embed = new EmbedBuilder()
 		.setTitle('📊投票')
 		.setDescription(question)
 		.setColor(0x00ae86)
-		.setFooter({ text: `残り時間: ${timeRemaining}秒` })
+		.setFooter({ text: `残り時間: ${formatTime(timeRemaining)}` })
 
 	const actionRow = new ActionRowBuilder<ButtonBuilder>()
 
@@ -71,13 +85,43 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
 	const countdown = setInterval(async () => {
 		timeRemaining -= 1
-		embed.setFooter({ text: `残り時間: ${timeRemaining}秒` })
-		await interaction.editReply({ embeds: [embed], components: [actionRow] })
+		embed.setFooter({ text: `残り時間: ${formatTime(timeRemaining)}` })
+
+		const shouldUpdate = shouldUpdateEmbed(timeRemaining)
+		if (shouldUpdate) {
+			await interaction.editReply({ embeds: [embed], components: [actionRow] })
+		}
 
 		if (timeRemaining <= 0) {
 			clearInterval(countdown)
 		}
 	}, 1000)
+
+	// 更新が必要かどうかを判定する関数
+	const shouldUpdateEmbed = (timeRemaining: number): boolean => {
+		const updateIntervals = [
+			{ threshold: 86400, interval: 43200 }, // 1日以上: 12時間ごとに更新
+			{ threshold: 43200, interval: 21600 }, // 12時間以上: 6時間ごとに更新
+			{ threshold: 21600, interval: 3600 }, // 6時間以上: 1時間ごとに更新
+			{ threshold: 3600, interval: 1800 }, // 60分以上: 30分ごとに更新
+			{ threshold: 1800, interval: 600 }, // 30分以上: 10分ごとに更新
+			{ threshold: 600, interval: 300 }, // 10分以上: 5分ごとに更新
+			{ threshold: 300, interval: 60 }, // 5分以上: 1分ごとに更新
+			{ threshold: 60, interval: 30 }, // 60秒以上: 30秒ごとに更新
+			{ threshold: 30, interval: 10 }, // 30秒以上: 10秒ごとに更新
+			{ threshold: 10, interval: 5 }, // 10秒以上: 5秒ごとに更新
+		]
+
+		// 各閾値に対する更新間隔をチェック
+		for (const { threshold, interval } of updateIntervals) {
+			if (timeRemaining > threshold) {
+				return timeRemaining % interval === 0
+			}
+		}
+
+		// 10秒以下の場合は毎秒更新
+		return timeRemaining <= 10
+	}
 
 	const collector = pollMessage.createMessageComponentCollector({ time: totalTime * 1000 })
 
