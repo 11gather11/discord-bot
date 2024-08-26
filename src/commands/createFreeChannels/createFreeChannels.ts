@@ -92,6 +92,7 @@ export const monitorExistingChannels = async (client: Client) => {
 	for (const voiceChannel of voiceChannels.values()) {
 		startVoiceChannelMonitoring(voiceChannel)
 	}
+	console.log(`フリーボイスチャンネルを再監視: ${voiceChannels.size}個`)
 }
 
 // ボイスチャンネルを監視して、メンバーがいなくなったら削除
