@@ -73,13 +73,8 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 
 // ボットが起動した際に、既存のチャンネルを監視
 export const monitorExistingChannels = async (client: Client) => {
-	const guild = client.guilds.cache.first()
-	if (!guild) {
-		return console.error('ギルドが見つかりません')
-	}
-
 	// 指定されたカテゴリ内のチャンネルを取得
-	const categoryChannel = guild.channels.cache.get(DISCORD_FREE_VOICE_CHANNEL_ID as string)
+	const categoryChannel = await client.channels.fetch(DISCORD_FREE_VOICE_CHANNEL_ID as string)
 	if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {
 		return console.error('カテゴリが見つかりません')
 	}
