@@ -22,7 +22,7 @@ export const data = new SlashCommandBuilder()
 			.setDescription('作成するチャンネルの名前を入力してください。')
 			.setRequired(false)
 			.setMinLength(5)
-			.setMaxLength(10)
+			.setMaxLength(20)
 	)
 	.addNumberOption((option) =>
 		option
