@@ -8,6 +8,7 @@ const {
 	TWITCH_CLIENT_ID,
 	TWITCH_CLIENT_SECRET,
 	DISCORD_STREAMS_CHANNEL_ID,
+	DISCORD_GUILD_ID,
 	TWITTER_API_KEY,
 	TWITTER_API_SECRET_KEY,
 	TWITTER_ACCESS_TOKEN,
@@ -69,8 +70,10 @@ const sendNotification = async ({
 	gameImageUrl,
 }: SendNotification) => {
 	try {
-		// Discordのチャンネルを取得
-		const channel = await client.channels.fetch(DISCORD_STREAMS_CHANNEL_ID as string)
+		// サーバーを取得
+		const guild = await client.guilds.fetch(DISCORD_GUILD_ID as string)
+		// チャンネルを取得
+		const channel = await guild.channels.fetch(DISCORD_STREAMS_CHANNEL_ID as string)
 		if (channel instanceof TextChannel) {
 			const embed = new EmbedBuilder()
 				.setColor(0x9146ff) // 埋め込みの左側の色を設定
