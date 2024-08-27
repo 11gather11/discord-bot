@@ -96,7 +96,9 @@ const startVoiceChannelMonitoring = (voiceChannel: VoiceChannel) => {
 		async () => {
 			if (!voiceChannel.guild.channels.cache.has(voiceChannel.id)) {
 				clearInterval(checkInterval) // チャンネルが存在しない場合、監視を停止
-				return console.log('チャンネルが存在しません')
+				return console.log(
+					'フリーチャンネルを削除しようとしましたが、チャンネルが見つかりませんでした'
+				)
 			}
 
 			if (voiceChannel.members.size === 0) {

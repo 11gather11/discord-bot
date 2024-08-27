@@ -4,7 +4,7 @@ import path from 'node:path'
 import { Client, Collection, GatewayIntentBits, type TextBasedChannel } from 'discord.js'
 
 // 環境変数
-const { DISCORD_TOKEN, DISCORD_ERROR_LOG_CHANNEL_ID } = process.env
+const { DISCORD_TOKEN, DISCORD_LOG_CHANNEL_ID } = process.env
 
 // 新しいClientインスタンスを作成
 const client = new Client({
@@ -13,6 +13,7 @@ const client = new Client({
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.MessageContent,
 		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.GuildMembers,
 	],
 })
 
@@ -25,7 +26,7 @@ const initialize = async () => {
 	await loadEvents()
 	await client.login(DISCORD_TOKEN)
 	// console.log と console.error をオーバライド
-	overrideConsole(client, DISCORD_ERROR_LOG_CHANNEL_ID as string)
+	overrideConsole(client, DISCORD_LOG_CHANNEL_ID)
 }
 
 // コマンドを読み込む
@@ -97,7 +98,13 @@ const loadEvents = async () => {
 }
 
 // console.log と console.error をオーバーライドする関数
-const overrideConsole = (client: Client, logChannelId: string): void => {
+const overrideConsole = (client: Client, logChannelId?: string): void => {
+	// ログチャンネルIDが指定されていない場合は処理を終了
+	if (!logChannelId) {
+		console.error('ログチャンネルIDが指定されていません')
+		return
+	}
+
 	// 元の console.log を保存
 	const originalConsoleLog = console.log
 	// 元の console.error を保存
@@ -149,7 +156,9 @@ const overrideConsole = (client: Client, logChannelId: string): void => {
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、エラー内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				;(channel as TextBasedChannel).send(`\`\`\`[${timestamp}] ${args.join(' ')}\`\`\``)
+				;(channel as TextBasedChannel).send(
+					`\`\`\`ansi\n\u001b[0;31m[${timestamp}] ${args.join(' ')}\`\`\``
+				)
 			}
 		} catch (error) {
 			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力

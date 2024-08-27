@@ -2,17 +2,20 @@ import axios from 'axios'
 import type { Client } from 'discord.js'
 
 // 環境変数
-const { YOUTUBE_API_KEY, DISCORD_VIDEOS_CHANNEL_ID } = process.env
+const { YOUTUBE_API_KEY, DISCORD_VIDEOS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
 
 const lastVideoId = new Map<string, string>()
 
 // YouTubeの新しい動画の通知を送信
 const sendYouTubeVideoNotification = async (client: Client, videoId: string) => {
 	try {
-		const channel = await client.channels.fetch(DISCORD_VIDEOS_CHANNEL_ID as string)
+		// サーバーを取得
+		const guild = await client.guilds.fetch(DISCORD_GUILD_ID as string)
+		// チャンネルを取得
+		const channel = await guild.channels.fetch(DISCORD_VIDEOS_CHANNEL_ID as string)
+		// チャンネルが見つからない場合はエラーを出力
 		if (!channel) {
-			console.error('指定されたチャンネルが見つかりませんでした')
-			return
+			return console.error('指定されたチャンネルが見つかりませんでした')
 		}
 		if (channel.isTextBased()) {
 			await channel.send({
@@ -46,7 +49,6 @@ const getLatestYouTubeVideo = async (channelId: string) => {
 		return items.length > 0 ? items[0] : null
 	} catch (error) {
 		console.error('YouTube最新動画取得エラー:', (error as Error).message)
-		throw new Error('YouTube最新動画取得エラー')
 	}
 }
 
@@ -60,7 +62,6 @@ const initializeLastVideoId = async (channelId: string) => {
 		}
 	} catch (error) {
 		console.error('YouTube動画初期化エラー:', (error as Error).message)
-		throw new Error('YouTube動画初期化エラー')
 	}
 }
 
