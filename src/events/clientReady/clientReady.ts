@@ -7,8 +7,7 @@ import { type Client, Events } from 'discord.js'
 
 const { YOUTUBE_CHANNEL_ID } = process.env
 if (!YOUTUBE_CHANNEL_ID) {
-	console.error('環境変数が設定されていません')
-	process.exit(1)
+	throw new Error('環境変数が設定されていません')
 }
 
 export const name = Events.ClientReady

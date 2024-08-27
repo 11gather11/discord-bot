@@ -6,6 +6,10 @@ import { Client, Collection, GatewayIntentBits, type TextBasedChannel } from 'di
 // 環境変数
 const { DISCORD_TOKEN, DISCORD_LOG_CHANNEL_ID } = process.env
 
+if (!(DISCORD_TOKEN && DISCORD_LOG_CHANNEL_ID)) {
+	throw new Error('環境変数が設定されていません')
+}
+
 // 新しいClientインスタンスを作成
 const client = new Client({
 	intents: [
