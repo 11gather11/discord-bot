@@ -40,8 +40,7 @@ const postTweet = async ({ userLogin, userName, title, gameName }: PostTweet) =>
 		console.log('ツイートを投稿しました')
 	} catch (error) {
 		console.error('ツイートの投稿に失敗しました:', (error as Error).message)
-		// エラー発生時に例外をスロー
-		throw new Error('ツイートの投稿に失敗しました')
+		return
 	}
 }
 
@@ -106,13 +105,13 @@ const sendNotification = async ({
 			})
 			console.log('Twitch配信通知を送信しました')
 		} else {
-			// テキストチャンネルでない場合にエラーをスロー
-			throw new Error('指定されたチャンネルIDはテキストチャンネルではありません')
+			console.error('指定されたチャンネルIDはテキストチャンネルではありません')
+			return
 		}
 	} catch (error) {
 		// エラー発生時に例外をスローしつつ、エラーログを出力
 		console.error('Twitch配信通知エラー:', (error as Error).message)
-		throw new Error('Twitch配信通知エラーが発生しました')
+		return
 	}
 }
 
@@ -134,12 +133,12 @@ const getTwitchAccessToken = async () => {
 	} catch (error) {
 		// アクセストークン取得失敗時のエラーログを出力
 		console.error('Twitchアクセストークンの取得に失敗しました:', (error as Error).message)
-		throw new Error('Twitchアクセストークンの取得に失敗しました')
+		return
 	}
 }
 
 // Twitchのゲーム情報を取得
-const getTwitchGame = async (gameId: string): Promise<TwitchGame> => {
+const getTwitchGame = async (gameId: string): Promise<TwitchGame | undefined> => {
 	try {
 		const response = await axios.get('https://api.twitch.tv/helix/games', {
 			headers: {
@@ -157,7 +156,7 @@ const getTwitchGame = async (gameId: string): Promise<TwitchGame> => {
 	} catch (error) {
 		// ゲーム情報取得失敗時のエラーログを出力
 		console.error('Twitchゲーム情報の取得に失敗しました:', (error as Error).message)
-		throw new Error('Twitchゲーム情報の取得に失敗しました')
+		return
 	}
 }
 
@@ -181,7 +180,7 @@ const isStreaming = async (userLogin: string): Promise<TwitchStream | undefined>
 	} catch (error) {
 		// 配信情報取得失敗時のエラーログを出力
 		console.error('Twitch配信情報の取得に失敗しました:', (error as Error).message)
-		throw new Error('Twitch配信情報の取得に失敗しました')
+		return
 	}
 }
 
@@ -200,12 +199,16 @@ const checkStream = async (client: Client, userLogin: string) => {
 
 		// 配信中かつ未通知の場合は通知
 		if (stream && !notified) {
+			const twitchGame = await getTwitchGame(stream.game_id)
+			if (!twitchGame) {
+				console.error('Twitchゲーム情報の取得に失敗しました')
+				return
+			}
 			// 配信情報を取得
 			const title = stream.title
 			const userName = stream.user_name
 			const viewerCount = stream.viewer_count
 			const startedAt = new Date(stream.started_at).toLocaleString('ja-JP')
-			const twitchGame = await getTwitchGame(stream.game_id)
 			const gameName = twitchGame.name
 			const gameImageUrl = twitchGame.box_art_url
 				.replace('{width}', '144')
@@ -234,7 +237,6 @@ const checkStream = async (client: Client, userLogin: string) => {
 	} catch (error) {
 		// 配信チェック中のエラーログを出力
 		console.error('Twitch配信チェックエラー:', (error as Error).message)
-		throw new Error('Twitch配信チェック中にエラーが発生しました')
 	}
 }
 
