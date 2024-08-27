@@ -155,7 +155,9 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、エラー内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				;(channel as TextBasedChannel).send(`\`\`\`[${timestamp}] ${args.join(' ')}\`\`\``)
+				;(channel as TextBasedChannel).send(
+					`\`\`\`ansi\n\u001b[0;31m[${timestamp}] ${args.join(' ')}\`\`\``
+				)
 			}
 		} catch (error) {
 			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
