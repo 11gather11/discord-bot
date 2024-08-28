@@ -93,7 +93,9 @@ export const minecraftFormSubmitHandler = async (interaction: ModalSubmitInterac
 		}
 
 		const embed = new EmbedBuilder()
-			.setTitle(`送信者:**${interaction.user.username}**`)
+			.setTitle(
+				`送信者ID:**${interaction.user.username}** 表示名:**${interaction.user.displayName}**`
+			)
 			.setDescription(`Minecraftのユーザー名: **${minecraftUsername}**`)
 			.setColor(0x00ae86)
 
