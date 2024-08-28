@@ -15,13 +15,28 @@ const {
 	TWITTER_ACCESS_TOKEN_SECRET,
 } = process.env
 
+if (
+	!(
+		TWITCH_CLIENT_ID &&
+		TWITCH_CLIENT_SECRET &&
+		DISCORD_STREAMS_CHANNEL_ID &&
+		DISCORD_GUILD_ID &&
+		TWITTER_API_KEY &&
+		TWITTER_API_SECRET_KEY &&
+		TWITTER_ACCESS_TOKEN &&
+		TWITTER_ACCESS_TOKEN_SECRET
+	)
+) {
+	throw new Error('環境変数が設定されていません')
+}
+
 let accessToken = ''
 const streamingNotified = new Map<string, boolean>()
 
 // Twitter APIクライアントを初期化
 const twitterClient = new TwitterApi({
-	appKey: TWITTER_API_KEY as string,
-	appSecret: TWITTER_API_SECRET_KEY as string,
+	appKey: TWITTER_API_KEY,
+	appSecret: TWITTER_API_SECRET_KEY,
 	accessToken: TWITTER_ACCESS_TOKEN,
 	accessSecret: TWITTER_ACCESS_TOKEN_SECRET,
 })
@@ -71,9 +86,9 @@ const sendNotification = async ({
 }: SendNotification) => {
 	try {
 		// サーバーを取得
-		const guild = await client.guilds.fetch(DISCORD_GUILD_ID as string)
+		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
 		// チャンネルを取得
-		const channel = await guild.channels.fetch(DISCORD_STREAMS_CHANNEL_ID as string)
+		const channel = await guild.channels.fetch(DISCORD_STREAMS_CHANNEL_ID)
 		if (channel instanceof TextChannel) {
 			const embed = new EmbedBuilder()
 				.setColor(0x9146ff) // 埋め込みの左側の色を設定

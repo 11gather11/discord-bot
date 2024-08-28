@@ -4,15 +4,19 @@ import type { Client } from 'discord.js'
 // 環境変数
 const { YOUTUBE_API_KEY, DISCORD_VIDEOS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
 
+if (!(YOUTUBE_API_KEY && DISCORD_VIDEOS_CHANNEL_ID && DISCORD_GUILD_ID)) {
+	throw new Error('環境変数が設定されていません')
+}
+
 const lastVideoId = new Map<string, string>()
 
 // YouTubeの新しい動画の通知を送信
 const sendYouTubeVideoNotification = async (client: Client, videoId: string) => {
 	try {
 		// サーバーを取得
-		const guild = await client.guilds.fetch(DISCORD_GUILD_ID as string)
+		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
 		// チャンネルを取得
-		const channel = await guild.channels.fetch(DISCORD_VIDEOS_CHANNEL_ID as string)
+		const channel = await guild.channels.fetch(DISCORD_VIDEOS_CHANNEL_ID)
 		// チャンネルが見つからない場合はエラーを出力
 		if (!channel) {
 			return console.error('指定されたチャンネルが見つかりませんでした')

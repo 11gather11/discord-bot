@@ -11,6 +11,10 @@ import {
 // 環境変数
 const { DISCORD_FREE_VOICE_CHANNEL_ID } = process.env
 
+if (!DISCORD_FREE_VOICE_CHANNEL_ID) {
+	throw new Error('環境変数が設定されていません')
+}
+
 export const cooldown = 10 // 10秒
 
 // コマンドの設定をエクスポート
@@ -37,9 +41,17 @@ export const data = new SlashCommandBuilder()
 // コマンドが実行されたときの処理
 export const execute = async (interaction: ChatInputCommandInteraction): Promise<void> => {
 	// コマンド実行者を取得
-	const member = interaction.guild?.members.cache.get(interaction.user.id)?.displayName
+	const guild = interaction.guild
+	if (!guild) {
+		return await sendErrorReply(interaction, 'サーバーが見つかりませんでした。')
+	}
+	const member = await guild.members.fetch(interaction.user.id)
+	if (!member) {
+		return await sendErrorReply(interaction, 'メンバーが見つかりませんでした。')
+	}
+	const user = member.displayName
 
-	const name = `🔊${interaction.options.getString('名前') ?? `${member}のVC`}`
+	const name = `🔊${interaction.options.getString('名前') ?? `${user}のVC`}`
 	const userLimit = interaction.options.getNumber('人数') ?? undefined
 
 	// ボイスチャンネルの作成
@@ -74,7 +86,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 // ボットが起動した際に、既存のチャンネルを監視
 export const monitorExistingChannels = async (client: Client) => {
 	// 指定されたカテゴリ内のチャンネルを取得
-	const categoryChannel = await client.channels.fetch(DISCORD_FREE_VOICE_CHANNEL_ID as string)
+	const categoryChannel = await client.channels.fetch(DISCORD_FREE_VOICE_CHANNEL_ID)
 	if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {
 		return console.error('カテゴリが見つかりません')
 	}

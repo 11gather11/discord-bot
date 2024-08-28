@@ -3,11 +3,15 @@ import type { Client } from 'discord.js'
 // 環境変数
 const { DISCORD_GUILD_ID, DISCORD_MEMBER_COUNT_CHANNEL_ID } = process.env
 
+if (!(DISCORD_GUILD_ID && DISCORD_MEMBER_COUNT_CHANNEL_ID)) {
+	throw new Error('環境変数が設定されていません')
+}
+
 // メンバー数を更新する関数
 const MemberCounts = async (client: Client) => {
 	try {
 		// サーバーを取得
-		const guild = await client.guilds.fetch(DISCORD_GUILD_ID as string)
+		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
 		if (!guild) {
 			// サーバーが見つからなかった場合のエラー処理
 			return console.error('指定されたサーバーが見つかりませんでした')
@@ -18,7 +22,7 @@ const MemberCounts = async (client: Client) => {
 		const memberCount = members.filter((member) => !member.user.bot).size
 
 		// チャンネルを取得
-		const memberCountChannel = await guild.channels.fetch(DISCORD_MEMBER_COUNT_CHANNEL_ID as string)
+		const memberCountChannel = await guild.channels.fetch(DISCORD_MEMBER_COUNT_CHANNEL_ID)
 		if (!memberCountChannel || memberCountChannel.type !== 2) {
 			// チャンネルが見つからなかった場合のエラー処理
 			return console.error('指定されたチャンネルが見つかりませんでした')
