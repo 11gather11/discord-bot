@@ -44,7 +44,6 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	await interaction.reply({
 		embeds: [embed],
 		components: [actionRow],
-		ephemeral: false, // メッセージを全員に表示
 	})
 }
 
@@ -54,7 +53,7 @@ export const MinecraftFormButtonHandler = async (interaction: ButtonInteraction)
 		// フォームの作成
 		const form = new ModalBuilder()
 			.setCustomId('minecraftForm')
-			.setTitle('🕋マイクラサーバー参加フォーム')
+			.setTitle('🕋マインクラフト参加フォーム')
 
 		// ユーザー名の入力フィールドを作成
 		const usernameInput = new TextInputBuilder()
@@ -80,22 +79,34 @@ export const MinecraftFormSubmitHandler = async (interaction: ModalSubmitInterac
 		// フォームから送信されたデータを取得
 		const minecraftUsername = interaction.fields.getTextInputValue('minecraftUsername')
 
-		// ここでは例として、ユーザー名を返信する形にしています
+		// フォームの送信者を取得
 		const guild = interaction.guild
 		if (!guild) {
 			console.error('サーバーが見つかりませんでした。')
 			return
 		}
+		// フォームの送信者が入力したデータをチャンネルに送信
 		const channel = await guild.channels.fetch(DISCORD_MINECRAFT_CHANNEL_ID)
 		if (!channel?.isTextBased()) {
 			console.error('チャンネルが見つかりませんでした。')
 			return
 		}
 
-		await channel.send(`Minecraftのユーザー名: **${minecraftUsername}** を受け付けました。`)
+		const embed = new EmbedBuilder()
+			.setTitle(`送信者:**${interaction.user.username}**`)
+			.setDescription(`Minecraftのユーザー名: **${minecraftUsername}**`)
+			.setColor(0x00ae86)
+
+		// チャンネルに埋め込みメッセージとして送信
+		await channel.send({ embeds: [embed] })
+
+		const replyEmbed = new EmbedBuilder()
+			.setTitle('🕋マインクラフト参加フォーム')
+			.setDescription('フォームの送信が完了しました。')
+			.setColor(0x00ae86)
 
 		await interaction.reply({
-			content: `Minecraftのユーザー名: **${minecraftUsername}** を受け付けました。`,
+			embeds: [replyEmbed],
 			ephemeral: true, // メッセージを送信者にのみ表示
 		})
 	}
