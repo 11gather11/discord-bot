@@ -26,11 +26,15 @@ client.commands = new Collection()
 
 //初期化
 const initialize = async () => {
-	await loadCommands()
-	await loadEvents()
-	await client.login(DISCORD_TOKEN)
-	// console.log と console.error をオーバライド
 	overrideConsole(client, DISCORD_LOG_CHANNEL_ID)
+	try {
+		await loadCommands()
+		await loadEvents()
+		await client.login(DISCORD_TOKEN)
+	} catch (error) {
+		console.error('初期化中にエラーが発生しました:', (error as Error).message)
+		process.exit(1)
+	}
 }
 
 // コマンドを読み込む
@@ -116,20 +120,19 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 
 	// タイムスタンプを取得する関数
 	const getTimestamp = (): string => {
+		// 現在の日時を取得
 		const now = new Date()
-		// 日本時間に変換 (UTC+9)
-		const jstOffset = 9 * 60 * 60 * 1000
-		const jstDate = new Date(now.getTime() + jstOffset)
-
-		// yyyy/mm/dd hh:mm:ss 形式にフォーマット
-		const year = jstDate.getUTCFullYear()
-		const month = String(jstDate.getUTCMonth() + 1).padStart(2, '0')
-		const day = String(jstDate.getUTCDate()).padStart(2, '0')
-		const hours = String(jstDate.getUTCHours()).padStart(2, '0')
-		const minutes = String(jstDate.getUTCMinutes()).padStart(2, '0')
-		const seconds = String(jstDate.getUTCSeconds()).padStart(2, '0')
-
-		return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
+		// 日本時間に変換して、指定されたフォーマットで返す
+		return now.toLocaleString('ja-JP', {
+			timeZone: 'Asia/Tokyo',
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hour12: false,
+		})
 	}
 
 	// console.log のオーバーライド
@@ -142,7 +145,7 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、ログ内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				;(channel as TextBasedChannel).send(`\`\`\`[${timestamp}] ${args.join(' ')}\`\`\``)
+				await (channel as TextBasedChannel).send(`\`\`\`[${timestamp}] ${args.join(' ')}\`\`\``)
 			}
 		} catch (error) {
 			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
@@ -160,7 +163,7 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、エラー内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				;(channel as TextBasedChannel).send(
+				await (channel as TextBasedChannel).send(
 					`\`\`\`ansi\n\u001b[0;31m[${timestamp}] ${args.join(' ')}\`\`\``
 				)
 			}
