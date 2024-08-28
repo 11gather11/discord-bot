@@ -16,9 +16,13 @@ export const once = true
 
 export const execute = async (client: Client) => {
 	console.log(`ログイン成功: ${client.user?.tag}`)
-	await deployCommands()
-	await startTwitchLiveNotification(client, 'vvvmeovvv')
-	await startYouTubeVideoNotification(client, YOUTUBE_CHANNEL_ID)
-	await updateMemberCounts(client)
-	await monitorExistingChannels(client)
+	try {
+		await deployCommands()
+		await startTwitchLiveNotification(client, 'vvvmeovvv')
+		await startYouTubeVideoNotification(client, YOUTUBE_CHANNEL_ID)
+		await updateMemberCounts(client)
+		await monitorExistingChannels(client)
+	} catch (error) {
+		console.error(error)
+	}
 }
