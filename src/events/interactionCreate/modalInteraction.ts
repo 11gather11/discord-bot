@@ -1,4 +1,4 @@
-import { MinecraftFormSubmitHandler } from '@/commands/minecraftForm/minecraftForm'
+import { minecraftFormSubmitHandler } from '@/commands/minecraftForm/minecraftForm'
 import { Events, type Interaction } from 'discord.js'
 
 // イベント名
@@ -10,6 +10,6 @@ export const execute = async (interaction: Interaction) => {
 		return
 	}
 	if (interaction.customId === 'minecraftForm') {
-		await MinecraftFormSubmitHandler(interaction)
+		await minecraftFormSubmitHandler(interaction)
 	}
 }

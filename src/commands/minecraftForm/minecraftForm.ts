@@ -48,7 +48,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 }
 
 // ボタンがクリックされたときの処理
-export const MinecraftFormButtonHandler = async (interaction: ButtonInteraction) => {
+export const minecraftFormButtonHandler = async (interaction: ButtonInteraction) => {
 	if (interaction.customId === 'minecraftForm') {
 		// フォームの作成
 		const form = new ModalBuilder()
@@ -74,7 +74,7 @@ export const MinecraftFormButtonHandler = async (interaction: ButtonInteraction)
 }
 
 // フォーム送信時の処理
-export const MinecraftFormSubmitHandler = async (interaction: ModalSubmitInteraction) => {
+export const minecraftFormSubmitHandler = async (interaction: ModalSubmitInteraction) => {
 	if (interaction.customId === 'minecraftForm') {
 		// フォームから送信されたデータを取得
 		const minecraftUsername = interaction.fields.getTextInputValue('minecraftUsername')
