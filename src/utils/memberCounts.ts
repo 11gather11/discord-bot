@@ -54,7 +54,7 @@ export const updateMemberCounts = async (client: Client) => {
 					console.error('定期メンバー数更新中にエラーが発生しました:', (error as Error).message)
 				}
 			},
-			1000 * 60 * 60 // 1時間ごとの更新
+			1000 * 60 * 10 // 10分ごとに更新
 		)
 	} catch (error) {
 		// 初期更新時のエラーをキャッチしてログに出力
