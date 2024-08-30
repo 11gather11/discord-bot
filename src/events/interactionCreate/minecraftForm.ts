@@ -19,10 +19,10 @@ export const execute = async (interaction: Interaction) => {
 	}
 	// ボタンの場合
 	if (interaction.isButton()) {
-		await minecraftFormButtonHandler(interaction)
+		return await minecraftFormButtonHandler(interaction)
 	}
 	// モーダルの場合
 	if (interaction.isModalSubmit()) {
-		await minecraftFormSubmitHandler(interaction)
+		return await minecraftFormSubmitHandler(interaction)
 	}
 }
