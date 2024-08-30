@@ -7,7 +7,7 @@ import {
 } from 'discord.js'
 
 export const data = new SlashCommandBuilder()
-	.setName('team')
+	.setName('チーム分け')
 	.setDescription('チーム分けを行います。')
 	.addIntegerOption((option) =>
 		option

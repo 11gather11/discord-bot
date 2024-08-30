@@ -4,11 +4,11 @@ import { type ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } f
 
 // コマンドの設定をエクスポート
 export const data = new SlashCommandBuilder()
-	.setName('dice')
+	.setName('ダイス')
 	.setDescription('ダイスを振るコマンドです。')
 	.addSubcommand((subcommand) =>
 		subcommand
-			.setName('normal')
+			.setName('通常')
 			.setDescription('ダイスを振って結果を返します。')
 			.addStringOption((option) =>
 				option
@@ -21,7 +21,7 @@ export const data = new SlashCommandBuilder()
 	)
 	.addSubcommand((subcommand) =>
 		subcommand
-			.setName('secret')
+			.setName('シークレット')
 			.setDescription('ダイスを振って結果を返します。(他のユーザーには見えません)')
 			.addStringOption((option) =>
 				option

@@ -12,20 +12,20 @@ export const cooldown = 10 // 10秒
 
 // コマンドのデータ
 export const data = new SlashCommandBuilder()
-	.setName('poll')
+	.setName('投票')
 	.setDescription('投票を作成します')
 	.addStringOption((option) =>
 		option.setName('question').setDescription('投票の質問を入力してください').setRequired(true)
 	)
 	.addStringOption((option) =>
 		option
-			.setName('options')
-			.setDescription('カンマで区切られた選択肢を入力してください (例: option1,option2)')
+			.setName('選択肢')
+			.setDescription('カンマで区切られた選択肢を入力してください (例: 選択肢1,選択肢2)')
 			.setRequired(true)
 	)
 	.addIntegerOption((option) =>
 		option
-			.setName('time')
+			.setName('時間')
 			.setDescription('投票の時間を秒単位で入力してください (デフォルト: 60秒)')
 			.setRequired(false)
 			.setMinValue(10)
