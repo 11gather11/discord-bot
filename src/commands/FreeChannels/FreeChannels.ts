@@ -15,15 +15,15 @@ if (!(DISCORD_FREE_VOICE_CHANNEL_ID && DISCORD_FREE_VOICE_CATEGORY_ID)) {
 
 // コマンドの設定をエクスポート
 export const data = new SlashCommandBuilder()
-	.setName('free_channels')
+	.setName('フリーチャンネル')
 	.setDescription('フリーチャンネルの設定コマンドです。')
 	.addSubcommand((subcommand) =>
 		subcommand
-			.setName('rename')
+			.setName('名前変更')
 			.setDescription('フリーチャンネルの名前を変更します。')
 			.addStringOption((option) =>
 				option
-					.setName('name')
+					.setName('名前')
 					.setDescription('新しい名前を入力してください。')
 					.setRequired(true)
 					.setMinLength(5)
@@ -32,11 +32,11 @@ export const data = new SlashCommandBuilder()
 	)
 	.addSubcommand((subcommand) =>
 		subcommand
-			.setName('limit')
+			.setName('人数制限')
 			.setDescription('フリーチャンネルの人数制限を設定します。')
 			.addIntegerOption((option) =>
 				option
-					.setName('limit')
+					.setName('人数')
 					.setDescription('人数制限を入力してください。(0で制限なし)')
 					.setRequired(true)
 					.setMinValue(0)

@@ -13,11 +13,11 @@ import {
 
 // コマンドの設定をエクスポート
 export const data = new SlashCommandBuilder()
-	.setName('janken')
+	.setName('じゃんけん')
 	.setDescription('じゃんけんゲームを開始します。')
 	.addSubcommand((subcommand) =>
 		subcommand
-			.setName('normal')
+			.setName('通常')
 			.setDescription('通常のじゃんけんゲームを開始します。')
 			.addIntegerOption((option) =>
 				option
@@ -29,7 +29,7 @@ export const data = new SlashCommandBuilder()
 	)
 	.addSubcommand((subcommand) =>
 		subcommand
-			.setName('vc')
+			.setName('チャンネル内')
 			.setDescription('同じVCにいるユーザーだけが参加できるじゃんけんを開始します。')
 			.addIntegerOption((option) =>
 				option

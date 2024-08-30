@@ -21,7 +21,7 @@ if (!DISCORD_MINECRAFT_CHANNEL_ID) {
 
 // コマンドのデータ
 export const data = new SlashCommandBuilder()
-	.setName('minecraft_form')
+	.setName('マインクラフト参加フォーム')
 	.setDescription('Minecraftの参加フォームを作成します')
 	.setDefaultMemberPermissions(PermissionFlagsBits.Administrator) // 管理者のみ実行可能
 

@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import type { Command } from '@/types/client'
 import { type APIApplicationCommand, REST, Routes } from 'discord.js'
-import type { Command } from './types/client'
 
 // 環境変数
 const { DISCORD_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_TOKEN } = process.env
@@ -41,11 +41,8 @@ export const deployCommands = async () => {
 				Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID),
 				{ body: commands }
 			)) as APIApplicationCommand[]
-			if (process.env.NODE_ENV === 'development') {
-				console.log(`開発環境用 ${data.length} 個のアプリケーションコマンドを登録しました。`)
-			} else {
-				console.log(`本番環境用 ${data.length} 個のアプリケーションコマンドを登録しました。`)
-			}
+			const env = process.env.NODE_ENV === 'development' ? '開発' : '本番'
+			console.log(`${env}環境用 ${data.length} 個のアプリケーションコマンドを登録しました。`)
 		} catch (error) {
 			console.error(error)
 		}
