@@ -10,41 +10,42 @@ if (!(DISCORD_FREE_VOICE_CHANNEL_ID && DISCORD_FREE_VOICE_CATEGORY_ID)) {
 export const name = Events.VoiceStateUpdate
 
 // イベントが発生した際に実行される関数
-export const execute = async (oldState: VoiceState, newState: VoiceState) => {
-	// ユーザーが指定されたチャンネルに参加しているか確認
-	if (oldState && newState.channelId !== DISCORD_FREE_VOICE_CHANNEL_ID) {
+export const execute = (oldState: VoiceState, newState: VoiceState) => {
+	// グローバルに管理するリスナーでチャンネルの状態をチェック
+	checkVoiceChannel(oldState, newState)
+}
+
+// チャンネルの状態をチェックする関数
+const checkVoiceChannel = async (oldState: VoiceState, newState: VoiceState) => {
+	// チャンネルが一時チャンネルでない、または指定されたチャンネルでない場合は終了
+	if (
+		!oldState.channelId &&
+		(newState.channelId !== DISCORD_FREE_VOICE_CHANNEL_ID || !newState.channel)
+	) {
 		return
 	}
 
-	const guild = newState.guild
+	// 新しい一時チャンネルの作成
+	if (newState.channelId === DISCORD_FREE_VOICE_CHANNEL_ID) {
+		const guild = newState.guild
 
-	// 新しい一時的なボイスチャンネルを作成
-	const voiceChannel = await guild.channels.create({
-		name: `🔊${newState.member?.user.displayName}のVC`, // チャンネル名をユーザー名に基づいて設定
-		type: ChannelType.GuildVoice, // チャンネルタイプをボイスチャンネルに設定
-		parent: DISCORD_FREE_VOICE_CATEGORY_ID, // 親カテゴリを設定
-	})
+		const newVoiceChannel = await guild.channels.create({
+			name: `🔊${newState.member?.user.displayName}のVC`,
+			type: ChannelType.GuildVoice,
+			parent: DISCORD_FREE_VOICE_CATEGORY_ID,
+		})
 
-	// ユーザーを新しく作成したボイスチャンネルに移動
-	await newState.member?.voice.setChannel(voiceChannel)
-
-	// チャンネルが空になったら削除するための監視関数
-	const checkChannel = async (updatedOldState: VoiceState, updatedNewState: VoiceState) => {
-		// ユーザーがチャンネルを離れ、かつチャンネルが空であるか確認
-		if (
-			updatedOldState &&
-			updatedNewState.channelId !== voiceChannel.id &&
-			voiceChannel.members.size === 0
-		) {
-			// チャンネルを削除
-			await voiceChannel.delete()
-			// イベントリスナーを解除
-			newState.client.off(Events.VoiceStateUpdate, checkChannel)
-		}
+		await newState.member?.voice.setChannel(newVoiceChannel)
+		return
 	}
 
-	// VoiceStateUpdateイベントが発生したら、checkChannel関数を呼び出すリスナーを設定
-	newState.client.on(Events.VoiceStateUpdate, checkChannel)
+	// 既存チャンネルの監視
+	if (oldState.channelId && oldState.channelId !== DISCORD_FREE_VOICE_CHANNEL_ID) {
+		const oldChannel = oldState.channel as VoiceChannel
+		if (oldChannel.members.size === 0) {
+			await oldChannel.delete()
+		}
+	}
 }
 
 // ボット起動時に既存のチャンネルを監視するための関数
@@ -60,28 +61,11 @@ export const monitorExistingChannels = async (client: Client) => {
 			channel.type === ChannelType.GuildVoice && channel.id !== DISCORD_FREE_VOICE_CHANNEL_ID
 	) as Map<string, VoiceChannel>
 
-	// 各ボイスチャンネルを監視
+	// 各ボイスチャンネルをチェック
 	for (const voiceChannel of voiceChannels.values()) {
-		// チャンネルが空である場合は即座に削除
 		if (voiceChannel.members.size === 0) {
 			await voiceChannel.delete()
-			console.log(`空のチャンネルを削除しました: ${voiceChannel.name}`)
-		} else {
-			// チャンネルが空ではない場合、監視を開始
-			startVoiceChannelMonitoring(voiceChannel, client)
 		}
 	}
 	console.log(`フリーボイスチャンネルを再監視: ${voiceChannels.size}個`)
-}
-
-// 既存のボイスチャンネルの監視を開始する関数
-const startVoiceChannelMonitoring = (voiceChannel: VoiceChannel, client: Client) => {
-	const checkChannel = async (oldState: VoiceState, newState: VoiceState) => {
-		if (oldState && newState.channelId !== voiceChannel.id && voiceChannel.members.size === 0) {
-			await voiceChannel.delete()
-			client.off(Events.VoiceStateUpdate, checkChannel)
-		}
-	}
-
-	client.on(Events.VoiceStateUpdate, checkChannel)
 }
