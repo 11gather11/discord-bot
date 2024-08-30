@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import type { Command } from '@/types/client'
 import { type APIApplicationCommand, REST, Routes } from 'discord.js'
-import type { Command } from './types/client'
 
 // 環境変数
 const { DISCORD_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_TOKEN } = process.env

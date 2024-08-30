@@ -1,6 +1,6 @@
 import { sendErrorReply } from '@/utils/sendErrorReply'
+import { toHalfWidth } from '@/utils/toHalfWidth'
 import { type ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
-import { toHalfWidth } from '../../utils/toHalfWidth'
 
 // コマンドの設定をエクスポート
 export const data = new SlashCommandBuilder()

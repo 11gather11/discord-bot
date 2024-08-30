@@ -1,7 +1,7 @@
+import type { TwitchGame, TwitchStream } from '@/types/twitch'
 import axios from 'axios'
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'
 import TwitterApi from 'twitter-api-v2'
-import type { TwitchGame, TwitchStream } from '../types/twitch'
 
 // 環境変数
 const {
