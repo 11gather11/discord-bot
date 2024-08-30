@@ -225,7 +225,7 @@ const checkStream = async (client: Client, userLogin: string) => {
 			const startedAt = new Date(stream.started_at).toLocaleString('ja-JP')
 			const gameName = twitchGame?.name ?? '不明'
 			const gameImageUrl =
-				twitchGame?.box_art_url ?? ''.replace('{width}', '144').replace('{height}', '192')
+				twitchGame?.box_art_url.replace('{width}', '144').replace('{height}', '192') ?? ''
 			const thumbnailUrl = stream.thumbnail_url.replace('{width}', '640').replace('{height}', '360')
 
 			// 通知を送信
