@@ -9,9 +9,9 @@ import {
 } from 'discord.js'
 
 // 環境変数
-const { DISCORD_FREE_VOICE_CHANNEL_ID } = process.env
+const { DISCORD_FREE_VOICE_CATEGORY_ID } = process.env
 
-if (!DISCORD_FREE_VOICE_CHANNEL_ID) {
+if (!DISCORD_FREE_VOICE_CATEGORY_ID) {
 	throw new Error('環境変数が設定されていません')
 }
 
@@ -59,7 +59,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 		name: name,
 		type: ChannelType.GuildVoice,
 		userLimit: userLimit,
-		parent: DISCORD_FREE_VOICE_CHANNEL_ID,
+		parent: DISCORD_FREE_VOICE_CATEGORY_ID,
 	})) as VoiceChannel
 
 	if (!voiceChannel) {
@@ -86,7 +86,7 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 // ボットが起動した際に、既存のチャンネルを監視
 export const monitorExistingChannels = async (client: Client) => {
 	// 指定されたカテゴリ内のチャンネルを取得
-	const categoryChannel = await client.channels.fetch(DISCORD_FREE_VOICE_CHANNEL_ID)
+	const categoryChannel = await client.channels.fetch(DISCORD_FREE_VOICE_CATEGORY_ID)
 	if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {
 		return console.error('カテゴリが見つかりません')
 	}
