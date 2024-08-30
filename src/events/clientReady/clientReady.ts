@@ -1,5 +1,5 @@
 import { deployCommands } from '@/deploy-commands'
-import { monitorExistingChannels } from '@/events/voiceStateUpdate/createFreeChannels'
+import { monitorExistingChannels } from '@/events/voiceStateUpdate/FreeChannels'
 import { startTwitchLiveNotification } from '@/lib/twitch'
 import { startYouTubeVideoNotification } from '@/lib/youtube'
 import { updateMemberCounts } from '@/utils/memberCounts'

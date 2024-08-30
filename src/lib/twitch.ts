@@ -218,19 +218,14 @@ const checkStream = async (client: Client, userLogin: string) => {
 		// 配信中かつ未通知の場合は通知
 		if (stream && !notified) {
 			const twitchGame = await getTwitchGame(stream.game_id)
-			if (!twitchGame) {
-				console.error('Twitchゲーム情報の取得に失敗しました')
-				return
-			}
 			// 配信情報を取得
 			const title = stream.title
 			const userName = stream.user_name
 			const viewerCount = stream.viewer_count
 			const startedAt = new Date(stream.started_at).toLocaleString('ja-JP')
-			const gameName = twitchGame.name
-			const gameImageUrl = twitchGame.box_art_url
-				.replace('{width}', '144')
-				.replace('{height}', '192')
+			const gameName = twitchGame?.name ?? '不明'
+			const gameImageUrl =
+				twitchGame?.box_art_url.replace('{width}', '144').replace('{height}', '192') ?? ''
 			const thumbnailUrl = stream.thumbnail_url.replace('{width}', '640').replace('{height}', '360')
 
 			// 通知を送信
