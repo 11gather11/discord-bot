@@ -174,4 +174,4 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 	}
 }
 
-initialize().catch(console.error)
+initialize()
