@@ -11,40 +11,43 @@ export const name = Events.VoiceStateUpdate
 
 // イベントが発生した際に実行される関数
 export const execute = (oldState: VoiceState, newState: VoiceState) => {
-	// グローバルに管理するリスナーでチャンネルの状態をチェック
-	checkVoiceChannel(oldState, newState)
+	// 新しい一時チャンネルの作成
+	createNewVoiceChannel(newState)
+	// 空のチャンネルの削除
+	deleteEmptyChannel(oldState)
 }
 
-// チャンネルの状態をチェックする関数
-const checkVoiceChannel = async (oldState: VoiceState, newState: VoiceState) => {
-	// チャンネルが一時チャンネルでない、または指定されたチャンネルでない場合は終了
+const createNewVoiceChannel = async (newState: VoiceState) => {
+	// フリー作成チャンネル以外の場合は処理を終了
+	if (newState.channelId !== DISCORD_FREE_VOICE_CHANNEL_ID) {
+		return
+	}
+
+	const guild = newState.guild
+	const newVoiceChannel = await guild.channels.create({
+		name: `🔊${newState.member?.user.displayName}のVC`,
+		type: ChannelType.GuildVoice,
+		parent: DISCORD_FREE_VOICE_CATEGORY_ID,
+	})
+	await newState.member?.voice.setChannel(newVoiceChannel)
+}
+
+const deleteEmptyChannel = async (oldState: VoiceState) => {
+	// チャンネルを取得
+	const channel = oldState.channel
+	if (!channel) {
+		return
+	}
+	// チャンネルがフリー作成チャンネルまたはフリーカテゴリー以外の場合は処理を終了
 	if (
-		!oldState.channelId &&
-		(newState.channelId !== DISCORD_FREE_VOICE_CHANNEL_ID || !newState.channel)
+		channel.id === DISCORD_FREE_VOICE_CHANNEL_ID ||
+		channel.parentId !== DISCORD_FREE_VOICE_CATEGORY_ID
 	) {
 		return
 	}
-
-	// 新しい一時チャンネルの作成
-	if (newState.channelId === DISCORD_FREE_VOICE_CHANNEL_ID) {
-		const guild = newState.guild
-
-		const newVoiceChannel = await guild.channels.create({
-			name: `🔊${newState.member?.user.displayName}のVC`,
-			type: ChannelType.GuildVoice,
-			parent: DISCORD_FREE_VOICE_CATEGORY_ID,
-		})
-
-		await newState.member?.voice.setChannel(newVoiceChannel)
-		return
-	}
-
-	// 既存チャンネルの監視
-	if (oldState.channelId && oldState.channelId !== DISCORD_FREE_VOICE_CHANNEL_ID) {
-		const oldChannel = oldState.channel as VoiceChannel
-		if (oldChannel.members.size === 0) {
-			await oldChannel.delete()
-		}
+	// チャンネルに誰もいない場合は削除
+	if (channel.members.size === 0) {
+		await channel.delete()
 	}
 }
 
