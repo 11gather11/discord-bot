@@ -34,17 +34,37 @@ const sendYouTubeVideoNotification = async (client: Client, videoId: string) => 
 	}
 }
 
-// YouTubeチャンネルの最新動画を取得
-const getLatestYouTubeVideo = async (channelId: string) => {
+// チャンネルのアップロードプレイリストIDを取得
+const getUploadsPlaylistId = async (channelId: string) => {
 	try {
-		const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+		const response = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
 			params: {
-				part: 'snippet',
-				channelId: channelId,
-				order: 'date',
+				part: 'contentDetails',
+				id: channelId,
+				key: YOUTUBE_API_KEY,
+			},
+		})
+
+		const items = response.data.items
+		if (items.length > 0) {
+			return items[0].contentDetails.relatedPlaylists.uploads
+		}
+		console.error('チャンネルが見つかりませんでした')
+		return null
+	} catch (error) {
+		console.error('YouTubeアップロードプレイリストID取得エラー:', (error as Error).message)
+		return null
+	}
+}
+
+// YouTubeチャンネルの最新動画を取得
+const getLatestYouTubeVideo = async (uploadsPlaylistId: string) => {
+	try {
+		const response = await axios.get('https://www.googleapis.com/youtube/v3/playlistItems', {
+			params: {
+				part: 'snippet,contentDetails',
+				playlistId: uploadsPlaylistId,
 				maxResults: 1,
-				type: 'video',
-				eventType: 'completed',
 				key: YOUTUBE_API_KEY,
 			},
 		})
@@ -57,12 +77,14 @@ const getLatestYouTubeVideo = async (channelId: string) => {
 }
 
 // 初期化関数：起動時に最新動画IDを保存
-const initializeLastVideoId = async (channelId: string) => {
+const initializeLastVideoId = async (uploadsPlaylistId: string) => {
 	try {
-		const latestVideo = await getLatestYouTubeVideo(channelId)
-		if (latestVideo) {
-			const videoId = latestVideo.id.videoId
-			lastVideoId.set(channelId, videoId)
+		if (uploadsPlaylistId) {
+			const latestVideo = await getLatestYouTubeVideo(uploadsPlaylistId)
+			if (latestVideo) {
+				const videoId = latestVideo.contentDetails.videoId
+				lastVideoId.set(uploadsPlaylistId, videoId)
+			}
 		}
 	} catch (error) {
 		console.error('YouTube動画初期化エラー:', (error as Error).message)
@@ -70,16 +92,16 @@ const initializeLastVideoId = async (channelId: string) => {
 }
 
 // YouTubeの新しい動画投稿をチェック
-const checkYouTubeVideo = async (client: Client, channelId: string) => {
+const checkYouTubeVideo = async (client: Client, uploadsPlaylistId: string) => {
 	try {
-		const latestVideo = await getLatestYouTubeVideo(channelId)
+		const latestVideo = await getLatestYouTubeVideo(uploadsPlaylistId)
 
 		if (latestVideo) {
-			const videoId = latestVideo.id.videoId
+			const videoId = latestVideo.contentDetails.videoId
 
-			if (lastVideoId.get(channelId) !== videoId) {
+			if (lastVideoId.get(uploadsPlaylistId) !== videoId) {
 				await sendYouTubeVideoNotification(client, videoId)
-				lastVideoId.set(channelId, videoId)
+				lastVideoId.set(uploadsPlaylistId, videoId)
 			}
 		}
 	} catch (error) {
@@ -91,12 +113,13 @@ const checkYouTubeVideo = async (client: Client, channelId: string) => {
 export const startYouTubeVideoNotification = async (client: Client, channelId: string) => {
 	try {
 		// 起動時に最新動画IDを初期化
-		await initializeLastVideoId(channelId)
+		const uploadsPlaylistId = await getUploadsPlaylistId(channelId)
+		await initializeLastVideoId(uploadsPlaylistId)
 		console.log(`YouTube動画投稿の監視を開始しました: ${channelId}`)
 		setInterval(
 			async () => {
 				try {
-					await checkYouTubeVideo(client, channelId)
+					await checkYouTubeVideo(client, uploadsPlaylistId)
 				} catch (error) {
 					console.error('YouTube動画通知エラー:', (error as Error).message)
 				}
