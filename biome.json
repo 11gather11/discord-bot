@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
 	"files": { "ignore": ["node_modules"] },
 	"organizeImports": { "enabled": true },
 	"formatter": {
@@ -11,7 +11,8 @@
 		"rules": {
 			"all": true,
 			"suspicious": {
-				"noConsoleLog": "off"
+				"noConsoleLog": "off",
+				"noConsole": "off"
 			},
 			"correctness": {
 				"noNodejsModules": "off"

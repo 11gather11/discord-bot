@@ -57,6 +57,9 @@ export const execute = async (interaction: ChatInputCommandInteraction): Promise
 	})
 }
 
+// ダイス式の正規表現
+const regex = /^(\d+)d(\d+)$/
+
 export const rollDice = (expression: string): { success: boolean; message: string } => {
 	// 正規表現で複数のダイス式を抽出
 	const convertExpression = toHalfWidth(expression)
@@ -65,7 +68,7 @@ export const rollDice = (expression: string): { success: boolean; message: strin
 	const results: string[] = []
 
 	for (const pattern of dicePatterns) {
-		const match = pattern.trim().match(/^(\d+)d(\d+)$/)
+		const match = pattern.trim().match(regex)
 		if (!match) {
 			return {
 				success: false,

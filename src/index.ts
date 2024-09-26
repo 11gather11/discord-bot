@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { Client, Collection, GatewayIntentBits, type TextBasedChannel } from 'discord.js'
+import { Client, Collection, GatewayIntentBits, type TextChannel } from 'discord.js'
 
 // 環境変数
 const { DISCORD_TOKEN, DISCORD_LOG_CHANNEL_ID } = process.env
@@ -145,7 +145,7 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、ログ内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				await (channel as TextBasedChannel).send(`\`\`\`[${timestamp}] ${args.join(' ')}\`\`\``)
+				await (channel as TextChannel).send(`\`\`\`[${timestamp}] ${args.join(' ')}\`\`\``)
 			}
 		} catch (error) {
 			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
@@ -163,7 +163,7 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、エラー内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				await (channel as TextBasedChannel).send(
+				await (channel as TextChannel).send(
 					`\`\`\`ansi\n\u001b[0;31m[${timestamp}] ${args.join(' ')}\`\`\``
 				)
 			}

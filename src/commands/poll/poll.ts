@@ -1,11 +1,11 @@
 import { sendErrorReply } from '@/utils/sendErrorReply'
-import { SlashCommandBuilder } from '@discordjs/builders'
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
+	SlashCommandBuilder,
 } from 'discord.js'
 
 export const cooldown = 10 // 10秒
