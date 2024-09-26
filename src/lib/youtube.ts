@@ -1,3 +1,4 @@
+import type { Channel, PlaylistItems } from '@/types/youtube'
 import axios from 'axios'
 import type { Client } from 'discord.js'
 
@@ -44,8 +45,8 @@ const getUploadsPlaylistId = async (channelId: string) => {
 				key: YOUTUBE_API_KEY,
 			},
 		})
-
-		const items = response.data.items
+		const data: Channel = response.data
+		const items = data.items
 		if (items.length > 0) {
 			return items[0].contentDetails.relatedPlaylists.uploads
 		}
@@ -69,7 +70,8 @@ const getLatestYouTubeVideo = async (uploadsPlaylistId: string) => {
 			},
 		})
 
-		const items = response.data.items
+		const data: PlaylistItems = response.data
+		const items = data.items
 		return items.length > 0 ? items[0] : null
 	} catch (error) {
 		console.error('YouTube最新動画取得エラー:', (error as Error).message)
@@ -114,6 +116,9 @@ export const startYouTubeVideoNotification = async (client: Client, channelId: s
 	try {
 		// 起動時に最新動画IDを初期化
 		const uploadsPlaylistId = await getUploadsPlaylistId(channelId)
+		if (!uploadsPlaylistId) {
+			return console.error('プレイリストIDが見つかりませんでした')
+		}
 		await initializeLastVideoId(uploadsPlaylistId)
 		console.log(`YouTube動画投稿の監視を開始しました: ${channelId}`)
 		setInterval(

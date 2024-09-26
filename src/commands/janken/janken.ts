@@ -7,6 +7,7 @@ import {
 	EmbedBuilder,
 	type GuildMember,
 	type Interaction,
+	type Message,
 	type MessageActionRowComponentBuilder,
 	SlashCommandBuilder,
 } from 'discord.js'
@@ -86,14 +87,14 @@ const startJanken = async (
 	const actionRow = createJankenButtons() // じゃんけんボタンを作成
 	const embed = createInitialEmbed(timeInMs / 1000, membersInVc) // 初期のEmbedメッセージを作成
 
-	await interaction.reply({
+	const message = await interaction.reply({
 		embeds: [embed],
 		components: [actionRow],
 		fetchReply: true,
 	})
 
 	// じゃんけんの選択肢を収集
-	const choices = await collectChoices(interaction, timeInMs, allowedUserIds, membersInVc)
+	const choices = await collectChoices(interaction, timeInMs, message, allowedUserIds, membersInVc)
 
 	// 誰も参加しなかった場合の処理
 	if (choices.size === 0) {
@@ -131,11 +132,12 @@ const createInitialEmbed = (time: number, membersInVc?: string[]) => {
 const collectChoices = async (
 	interaction: ChatInputCommandInteraction,
 	timeInMs: number,
+	message: Message,
 	allowedUserIds?: string[],
 	membersInVc?: string[]
 ): Promise<Map<string, string>> => {
 	const filter = (i: Interaction) => i.isButton()
-	const collector = interaction.channel?.createMessageComponentCollector({ filter, time: timeInMs })
+	const collector = message.createMessageComponentCollector({ filter, time: timeInMs })
 	const choices = new Map<string, string>()
 	let remainingTime = timeInMs / 1000
 
