@@ -26,7 +26,7 @@ const twitterClient = new TwitterApi({
 	accessSecret: TWITTER_ACCESS_TOKEN_SECRET,
 })
 
-export const postTweet = async (text: string) => {
+export const postTweet = async (text: string): Promise<void> => {
 	try {
 		await twitterClient.v2.tweet(text)
 		console.log('ツイートを投稿しました')

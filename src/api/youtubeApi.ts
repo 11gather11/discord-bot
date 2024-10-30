@@ -1,4 +1,4 @@
-import type { Channel, PlaylistItems } from '@/types/youtube'
+import type { Channel, Playlist, PlaylistItems } from '@/types/youtube'
 import axios from 'axios'
 
 // 環境変数
@@ -32,7 +32,9 @@ export const fetchUploadsPlaylistId = async (channelId: string): Promise<string>
 }
 
 // YouTubeチャンネルの最新動画を取得
-export const fetchLatestYouTubeVideo = async (uploadsPlaylistId: string) => {
+export const fetchLatestYouTubeVideo = async (
+	uploadsPlaylistId: string
+): Promise<PlaylistItems | undefined> => {
 	try {
 		const response = await axios.get('https://www.googleapis.com/youtube/v3/playlistItems', {
 			params: {
@@ -43,10 +45,11 @@ export const fetchLatestYouTubeVideo = async (uploadsPlaylistId: string) => {
 			},
 		})
 
-		const data: PlaylistItems = response.data
+		const data: Playlist = response.data
 		const items = data.items
-		return items.length > 0 ? items[0] : null
+		return items.length > 0 ? items[0] : undefined
 	} catch (error) {
 		console.error('YouTube最新動画取得エラー:', (error as Error).message)
+		throw new Error('YouTube最新動画取得エラー')
 	}
 }

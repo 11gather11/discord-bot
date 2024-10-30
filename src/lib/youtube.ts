@@ -11,7 +11,7 @@ if (!(DISCORD_VIDEOS_CHANNEL_ID && DISCORD_GUILD_ID)) {
 const lastVideoId = new Map<string, string>()
 
 // YouTubeの新しい動画の通知を送信
-const sendYouTubeVideoNotification = async (client: Client, videoId: string) => {
+const sendYouTubeVideoNotification = async (client: Client, videoId: string): Promise<void> => {
 	try {
 		// サーバーを取得
 		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
@@ -35,7 +35,7 @@ const sendYouTubeVideoNotification = async (client: Client, videoId: string) => 
 }
 
 // 初期化関数：起動時に最新動画IDを保存
-const initializeLastVideoId = async (uploadsPlaylistId: string) => {
+const initializeLastVideoId = async (uploadsPlaylistId: string): Promise<void> => {
 	try {
 		if (uploadsPlaylistId) {
 			const latestVideo = await fetchLatestYouTubeVideo(uploadsPlaylistId)
@@ -50,7 +50,7 @@ const initializeLastVideoId = async (uploadsPlaylistId: string) => {
 }
 
 // YouTubeの新しい動画投稿をチェック
-const checkYouTubeVideo = async (client: Client, uploadsPlaylistId: string) => {
+const checkYouTubeVideo = async (client: Client, uploadsPlaylistId: string): Promise<void> => {
 	try {
 		const latestVideo = await fetchLatestYouTubeVideo(uploadsPlaylistId)
 
@@ -68,7 +68,10 @@ const checkYouTubeVideo = async (client: Client, uploadsPlaylistId: string) => {
 }
 
 // YouTubeの動画投稿を監視開始
-export const startYouTubeVideoNotification = async (client: Client, channelId: string) => {
+export const startYouTubeVideoNotification = async (
+	client: Client,
+	channelId: string
+): Promise<void> => {
 	try {
 		// 起動時に最新動画IDを初期化
 		const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)

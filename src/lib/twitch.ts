@@ -41,7 +41,7 @@ const sendNotification = async ({
 	gameName,
 	thumbnailUrl,
 	gameImageUrl,
-}: SendNotification) => {
+}: SendNotification): Promise<void> => {
 	try {
 		// サーバーを取得
 		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
@@ -89,7 +89,7 @@ const sendNotification = async ({
 }
 
 // Twitchの配信状況をチェック
-const checkStream = async (client: Client, userLogin: string) => {
+const checkStream = async (client: Client, userLogin: string): Promise<void> => {
 	try {
 		// 通知済みフラグが未セットの場合はセット
 		if (!streamingNotified.has(userLogin)) {
@@ -140,7 +140,10 @@ const checkStream = async (client: Client, userLogin: string) => {
 }
 
 // Twitchの配信状況を監視開始
-export const startTwitchLiveNotification = async (client: Client, userLogin: string) => {
+export const startTwitchLiveNotification = async (
+	client: Client,
+	userLogin: string
+): Promise<void> => {
 	try {
 		// アクセストークンを取得
 		accessToken = await fetchTwitchAccessToken()
