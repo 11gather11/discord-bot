@@ -1,4 +1,4 @@
-import { deployCommands } from '@/deploy-commands'
+import { deployCommands } from '@/deployCommands'
 import { monitorExistingChannels } from '@/events/voiceStateUpdate/freeChannels'
 import { startTwitchLiveNotification } from '@/services/twitch'
 import { startYouTubeVideoNotification } from '@/services/youtube'

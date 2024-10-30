@@ -37,11 +37,12 @@ export const deployCommands = async () => {
 	const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN)
 	;(async () => {
 		try {
-			const data = (await rest.put(
-				Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID),
-				{ body: commands }
-			)) as APIApplicationCommand[]
 			const env = process.env.NODE_ENV === 'development' ? '開発' : '本番'
+			const route =
+				env === '開発'
+					? Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID)
+					: Routes.applicationCommands(DISCORD_CLIENT_ID)
+			const data = (await rest.put(route, { body: commands })) as APIApplicationCommand[]
 			console.log(`${env}環境用 ${data.length} 個のアプリケーションコマンドを登録しました。`)
 		} catch (error) {
 			console.error(error)
