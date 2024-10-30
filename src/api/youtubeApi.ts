@@ -2,9 +2,9 @@ import type { Channel, PlaylistItems } from '@/types/youtube'
 import axios from 'axios'
 
 // 環境変数
-const { YOUTUBE_API_KEY, DISCORD_VIDEOS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
+const { YOUTUBE_API_KEY } = process.env
 
-if (!(YOUTUBE_API_KEY && DISCORD_VIDEOS_CHANNEL_ID && DISCORD_GUILD_ID)) {
+if (!YOUTUBE_API_KEY) {
 	throw new Error('環境変数が設定されていません')
 }
 
