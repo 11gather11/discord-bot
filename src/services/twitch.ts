@@ -4,7 +4,7 @@ import {
 	fetchTwitchAccessToken,
 	fetchTwitchGameInfo,
 } from '@/api/twitchApi'
-import { postTweet } from '@/lib/twitter'
+import { postTweet } from '@/services/twitter'
 import type {} from '@/types/twitch'
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'
 

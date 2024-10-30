@@ -1,7 +1,7 @@
 import { deployCommands } from '@/deploy-commands'
 import { monitorExistingChannels } from '@/events/voiceStateUpdate/freeChannels'
-import { startTwitchLiveNotification } from '@/lib/twitch'
-import { startYouTubeVideoNotification } from '@/lib/youtube'
+import { startTwitchLiveNotification } from '@/services/twitch'
+import { startYouTubeVideoNotification } from '@/services/youtube'
 import { updateMemberCounts } from '@/utils/memberCounts'
 import { type Client, Events } from 'discord.js'
 
