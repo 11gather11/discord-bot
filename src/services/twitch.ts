@@ -1,12 +1,13 @@
 import {
-	checkAccessToken,
 	fetchStreamingStatus,
 	fetchTwitchAccessToken,
 	fetchTwitchGameInfo,
+	isAccessTokenValid,
 } from '@/api/twitchApi'
 import { postTweet } from '@/services/twitter'
 import type {} from '@/types/twitch'
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'
+import { type Result, err, ok } from 'neverthrow'
 
 // 環境変数
 const { DISCORD_STREAMS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
@@ -14,9 +15,6 @@ const { DISCORD_STREAMS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
 if (!(DISCORD_STREAMS_CHANNEL_ID && DISCORD_GUILD_ID)) {
 	throw new Error('環境変数が設定されていません')
 }
-
-let accessToken = ''
-const streamingNotified = new Map<string, boolean>()
 
 interface SendNotification {
 	client: Client
@@ -89,54 +87,67 @@ const sendNotification = async ({
 }
 
 // Twitchの配信状況をチェック
-const checkStream = async (client: Client, userLogin: string): Promise<void> => {
-	try {
-		// 通知済みフラグが未セットの場合はセット
-		if (!streamingNotified.has(userLogin)) {
-			streamingNotified.set(userLogin, false)
-		}
-		// アクセストークンをチェック
-		accessToken = await checkAccessToken(accessToken)
-		// 配信状況を取得
-		const stream = await fetchStreamingStatus(accessToken, userLogin)
-		// 通知済みフラグを取得
-		const notified = streamingNotified.get(userLogin)
+const checkStream = async (
+	client: Client,
+	userLogin: string,
+	accessToken: string,
+	notified: boolean
+): Promise<Result<boolean, Error>> => {
+	// 配信状況を取得
+	const streamingStatusResult = await fetchStreamingStatus(accessToken, userLogin)
+	if (streamingStatusResult.isErr()) {
+		return err(streamingStatusResult.error)
+	}
 
-		// 配信中かつ未通知の場合は通知
-		if (stream && !notified) {
-			const twitchGame = await fetchTwitchGameInfo(accessToken, stream.game_id)
-			// 配信情報を取得
-			const { user_name: userName, title, viewer_count: viewerCount } = stream
-			const startedAt = new Date(stream.started_at).toLocaleString('ja-JP')
-			const gameName = twitchGame.name
-			const gameImageUrl = twitchGame.box_art_url
+	// 通知の判定と送信
+	if (streamingStatusResult.value && !notified) {
+		const twitchGameResult = await fetchTwitchGameInfo(
+			accessToken,
+			streamingStatusResult.value.game_id
+		)
+		if (twitchGameResult.isErr()) {
+			return err(twitchGameResult.error)
+		}
+
+		// 配信情報を取得
+		const {
+			user_name: userName,
+			title,
+			viewer_count: viewerCount,
+			started_at,
+			thumbnail_url,
+		} = streamingStatusResult.value
+		const startedAt = new Date(started_at).toLocaleString('ja-JP')
+		const gameName = twitchGameResult.value?.name || '不明'
+		const gameImageUrl =
+			twitchGameResult.value?.box_art_url ||
+			'https://via.placeholder.com/144x192.png?text=No+Image'
 				.replace('{width}', '144')
 				.replace('{height}', '192')
-			const thumbnailUrl = stream.thumbnail_url.replace('{width}', '640').replace('{height}', '360')
+		const thumbnailUrl = thumbnail_url.replace('{width}', '640').replace('{height}', '360')
 
-			// 通知を送信
-			await sendNotification({
-				client: client,
-				userLogin: userLogin,
-				userName: userName,
-				title: title,
-				viewerCount: viewerCount,
-				startedAt: startedAt,
-				gameName: gameName,
-				thumbnailUrl: thumbnailUrl,
-				gameImageUrl: gameImageUrl,
-			})
+		// 通知を送信
+		await sendNotification({
+			client: client,
+			userLogin: userLogin,
+			userName: userName,
+			title: title,
+			viewerCount: viewerCount,
+			startedAt: startedAt,
+			gameName: gameName,
+			thumbnailUrl: thumbnailUrl,
+			gameImageUrl: gameImageUrl,
+		})
 
-			// 通知済みフラグをtrueにセット
-			streamingNotified.set(userLogin, true)
-		} else if (!stream && notified) {
-			// 配信中でなく通知済みの場合は通知済みフラグをfalseにセット
-			streamingNotified.set(userLogin, false)
-		}
-	} catch (error) {
-		// 配信チェック中のエラーログを出力
-		console.error('Twitch配信チェックエラー:', (error as Error).message)
+		// 通知済みフラグをtrueにセット
+		return ok(true)
 	}
+	if (!streamingStatusResult.value && notified) {
+		// 配信中でなく通知済みの場合は通知済みフラグをfalseにセット
+		return ok(false)
+	}
+	// 通知済みフラグをそのまま返す
+	return ok(notified)
 }
 
 // Twitchの配信状況を監視開始
@@ -145,20 +156,43 @@ export const startTwitchLiveNotification = async (
 	userLogin: string
 ): Promise<void> => {
 	try {
-		// アクセストークンを取得
-		accessToken = await fetchTwitchAccessToken()
+		// 初回のアクセストークンを取得
+		const tokenResult = await fetchTwitchAccessToken()
+		if (tokenResult.isErr()) {
+			console.error(tokenResult.error)
+			return
+		}
+		let accessToken = tokenResult.value
+
+		// 通知済みフラグ
+		let notified = false
 		// ボット起動時に配信状況をチェック
-		await checkStream(client, userLogin)
+		const checkStreamResult = await checkStream(client, userLogin, accessToken, notified)
+		if (checkStreamResult.isErr()) {
+			console.error(checkStreamResult.error)
+			return
+		}
+		notified = checkStreamResult.value
 		// 配信状況の監視を開始
 		console.log(`配信状況の監視を開始しました: ${userLogin}`)
 		// 60秒ごとにチェック
-		setInterval(async () => {
-			try {
-				await checkStream(client, userLogin)
-			} catch (error) {
-				// 定期チェック中のエラーログを出力
-				console.error('Twitchライブ通知エラー:', (error as Error).message)
+		const interval = setInterval(async () => {
+			// トークンチェックと更新
+			const AccessTokenValidResult = await isAccessTokenValid(accessToken)
+			if (AccessTokenValidResult.isOk() && !AccessTokenValidResult.value) {
+				const tokenCheckResult = await fetchTwitchAccessToken()
+				if (tokenCheckResult.isErr()) {
+					console.error(tokenCheckResult.error)
+					return clearInterval(interval)
+				}
+				accessToken = tokenCheckResult.value
 			}
+			const checkStreamResult = await checkStream(client, userLogin, accessToken, notified)
+			if (checkStreamResult.isErr()) {
+				console.error(checkStreamResult.error)
+				return clearInterval(interval)
+			}
+			notified = checkStreamResult.value
 		}, 1000 * 60)
 	} catch (error) {
 		// 初期化エラー時のエラーログを出力
