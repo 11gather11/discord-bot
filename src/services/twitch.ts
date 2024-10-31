@@ -95,6 +95,7 @@ const checkStream = async (
 ): Promise<Result<boolean, Error>> => {
 	// 配信状況を取得
 	const streamingStatusResult = await fetchStreamingStatus(accessToken, userLogin)
+
 	if (streamingStatusResult.isErr()) {
 		return err(streamingStatusResult.error)
 	}
