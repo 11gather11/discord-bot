@@ -1,55 +1,61 @@
 import type { Channel, Playlist, PlaylistItems } from '@/types/youtube'
-import axios from 'axios'
+import { type Result, err, ok } from 'neverthrow'
 
 // 環境変数
 const { YOUTUBE_API_KEY } = process.env
-
 if (!YOUTUBE_API_KEY) {
 	throw new Error('環境変数が設定されていません')
 }
 
-// チャンネルのアップロードプレイリストIDを取得
-export const fetchUploadsPlaylistId = async (channelId: string): Promise<string> => {
+/**
+ * YouTube APIを使用して、アップロードプレイリストIDを取得します
+ * @param {string} channelId チャンネルID
+ * @returns {Promise<Result<string, Error>>} アップロードプレイリストIDの取得結果
+ */
+export const fetchUploadsPlaylistId = async (channelId: string): Promise<Result<string, Error>> => {
 	try {
-		const response = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
-			params: {
-				part: 'contentDetails',
-				id: channelId,
-				key: YOUTUBE_API_KEY,
-			},
+		const url = 'https://www.googleapis.com/youtube/v3/channels'
+		const params = new URLSearchParams({
+			part: 'contentDetails',
+			id: channelId,
+			key: YOUTUBE_API_KEY,
 		})
-		const data: Channel = response.data
-		const items = data.items
-		if (items.length > 0) {
-			return items[0].contentDetails.relatedPlaylists.uploads
+		const response = await fetch(`${url}?${params}`)
+		if (!response.ok) {
+			err(new Error('YouTubeアップロードプレイリストID取得エラー'))
 		}
-		console.error('チャンネルが見つかりませんでした')
-		throw new Error('チャンネルが見つかりませんでした')
+		const data = (await response.json()) as Channel
+		if (!data.items) {
+			return err(new Error('チャンネルが見つかりませんでした'))
+		}
+		return ok(data.items[0].contentDetails.relatedPlaylists.uploads)
 	} catch (error) {
-		console.error('YouTubeアップロードプレイリストID取得エラー:', (error as Error).message)
-		throw new Error('YouTubeアップロードプレイリストID取得エラー')
+		return err(error as Error)
 	}
 }
 
-// YouTubeチャンネルの最新動画を取得
+/**
+ * YouTube APIを使用して、最新の動画を取得します
+ * @param {string} uploadsPlaylistId アップロードプレイリストID
+ * @returns {Promise<Result<PlaylistItems, Error>>} 最新動画の取得結果
+ */
 export const fetchLatestYouTubeVideo = async (
 	uploadsPlaylistId: string
-): Promise<PlaylistItems | undefined> => {
-	try {
-		const response = await axios.get('https://www.googleapis.com/youtube/v3/playlistItems', {
-			params: {
-				part: 'snippet,contentDetails',
-				playlistId: uploadsPlaylistId,
-				maxResults: 1,
-				key: YOUTUBE_API_KEY,
-			},
-		})
-
-		const data: Playlist = response.data
-		const items = data.items
-		return items.length > 0 ? items[0] : undefined
-	} catch (error) {
-		console.error('YouTube最新動画取得エラー:', (error as Error).message)
-		throw new Error('YouTube最新動画取得エラー')
+): Promise<Result<PlaylistItems, Error>> => {
+	const url = 'https://www.googleapis.com/youtube/v3/playlistItems'
+	const params = new URLSearchParams({
+		part: 'snippet,contentDetails',
+		playlistId: uploadsPlaylistId,
+		maxResults: '1',
+		key: YOUTUBE_API_KEY,
+	})
+	const response = await fetch(`${url}?${params}`)
+	if (!response.ok) {
+		err(new Error('YouTube最新動画取得エラー'))
 	}
+	const data = (await response.json()) as Playlist
+	if (!data.items) {
+		throw new Error('最新動画が見つかりませんでした')
+	}
+	return ok(data.items[0])
 }

@@ -1,5 +1,6 @@
 import { fetchLatestYouTubeVideo, fetchUploadsPlaylistId } from '@/api/youtubeApi'
 import type { Client } from 'discord.js'
+import { type Result, err, ok } from 'neverthrow'
 
 // 環境変数
 const { DISCORD_VIDEOS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
@@ -8,7 +9,87 @@ if (!(DISCORD_VIDEOS_CHANNEL_ID && DISCORD_GUILD_ID)) {
 	throw new Error('環境変数が設定されていません')
 }
 
-const lastVideoId = new Map<string, string>()
+/**
+ * YouTubeの新しい動画の通知を開始
+ * @param {Client} client Discordクライアント
+ * @param {string} channelId チャンネルID
+ * @returns {Promise<void>}
+ */
+export const startYouTubeVideoNotification = async (
+	client: Client,
+	channelId: string
+): Promise<void> => {
+	// 起動時にプレイリストIDを取得
+	const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)
+	if (uploadsPlaylistId.isErr()) {
+		console.error(uploadsPlaylistId.error)
+		return
+	}
+
+	// 最新動画IDを取得
+	const lastVideoIdResult = await initLastVideoId(uploadsPlaylistId.value)
+	if (lastVideoIdResult.isErr()) {
+		console.error(lastVideoIdResult.error)
+		return
+	}
+	let lastVideoId = lastVideoIdResult.value
+
+	// 20分ごとにチェック
+	const timer = 1000 * 60 * 20
+	const interval = setInterval(async () => {
+		const youTubeVideoNotificationResult = await handleYouTubeVideoNotification(
+			client,
+			uploadsPlaylistId.value,
+			lastVideoId
+		)
+		if (youTubeVideoNotificationResult.isErr()) {
+			console.error(youTubeVideoNotificationResult.error)
+			return clearInterval(interval)
+		}
+		lastVideoId = youTubeVideoNotificationResult.value
+	}, timer)
+
+	// 動画投稿の監視を開始
+	console.log(`YouTube動画投稿の監視を開始しました: ${channelId}`)
+}
+
+/**
+ * YouTubeの新しい動画をチェックして通知を送信その後最新動画IDを返す
+ * @param {Client} client Discordクライアント
+ * @param {string} uploadsPlaylistId アップロードプレイリストID
+ * @param {string} lastVideoId 最新動画ID
+ * @returns {Promise<Result<string, Error>>} 最新動画IDの取得結果
+ */
+const handleYouTubeVideoNotification = async (
+	client: Client,
+	uploadsPlaylistId: string,
+	lastVideoId: string
+): Promise<Result<string, Error>> => {
+	const latestVideo = await fetchLatestYouTubeVideo(uploadsPlaylistId)
+
+	if (latestVideo.isErr()) {
+		return err(latestVideo.error)
+	}
+	const videoId = latestVideo.value.contentDetails.videoId
+
+	if (lastVideoId !== videoId) {
+		await sendYouTubeVideoNotification(client, videoId)
+
+		return ok(videoId)
+	}
+	return ok(lastVideoId)
+}
+
+// 初期化関数：起動時に最新動画IDを保存
+const initLastVideoId = async (uploadsPlaylistId: string): Promise<Result<string, Error>> => {
+	const latestVideoResult = await fetchLatestYouTubeVideo(uploadsPlaylistId)
+	if (latestVideoResult.isErr()) {
+		return err(latestVideoResult.error)
+	}
+
+	const videoId = latestVideoResult.value.contentDetails.videoId
+	return ok(videoId)
+}
 
 // YouTubeの新しい動画の通知を送信
 const sendYouTubeVideoNotification = async (client: Client, videoId: string): Promise<void> => {
@@ -31,66 +112,5 @@ const sendYouTubeVideoNotification = async (client: Client, videoId: string): Pr
 		}
 	} catch (error) {
 		console.error('YouTube動画通知送信エラー:', (error as Error).message)
-	}
-}
-
-// 初期化関数：起動時に最新動画IDを保存
-const initializeLastVideoId = async (uploadsPlaylistId: string): Promise<void> => {
-	try {
-		if (uploadsPlaylistId) {
-			const latestVideo = await fetchLatestYouTubeVideo(uploadsPlaylistId)
-			if (latestVideo) {
-				const videoId = latestVideo.contentDetails.videoId
-				lastVideoId.set(uploadsPlaylistId, videoId)
-			}
-		}
-	} catch (error) {
-		console.error('YouTube動画初期化エラー:', (error as Error).message)
-	}
-}
-
-// YouTubeの新しい動画投稿をチェック
-const checkYouTubeVideo = async (client: Client, uploadsPlaylistId: string): Promise<void> => {
-	try {
-		const latestVideo = await fetchLatestYouTubeVideo(uploadsPlaylistId)
-
-		if (latestVideo) {
-			const videoId = latestVideo.contentDetails.videoId
-
-			if (lastVideoId.get(uploadsPlaylistId) !== videoId) {
-				await sendYouTubeVideoNotification(client, videoId)
-				lastVideoId.set(uploadsPlaylistId, videoId)
-			}
-		}
-	} catch (error) {
-		console.error('YouTube動画チェックエラー:', (error as Error).message)
-	}
-}
-
-// YouTubeの動画投稿を監視開始
-export const startYouTubeVideoNotification = async (
-	client: Client,
-	channelId: string
-): Promise<void> => {
-	try {
-		// 起動時に最新動画IDを初期化
-		const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)
-		if (!uploadsPlaylistId) {
-			return console.error('プレイリストIDが見つかりませんでした')
-		}
-		await initializeLastVideoId(uploadsPlaylistId)
-		console.log(`YouTube動画投稿の監視を開始しました: ${channelId}`)
-		setInterval(
-			async () => {
-				try {
-					await checkYouTubeVideo(client, uploadsPlaylistId)
-				} catch (error) {
-					console.error('YouTube動画通知エラー:', (error as Error).message)
-				}
-			},
-			1000 * 60 * 20
-		) // 20分ごとにチェック
-	} catch (error) {
-		console.error('YouTube動画通知初期化エラー:', (error as Error).message)
 	}
 }

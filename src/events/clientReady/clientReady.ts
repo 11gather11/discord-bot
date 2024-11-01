@@ -18,10 +18,12 @@ export const execute = async (client: Client) => {
 	console.log(`ログイン成功: ${client.user?.tag}`)
 	try {
 		await deployCommands()
-		await startTwitchLiveNotification(client, 'vvvmeovvv')
-		await startYouTubeVideoNotification(client, YOUTUBE_CHANNEL_ID)
-		await updateMemberCounts(client)
-		await monitorExistingChannels(client)
+		updateMemberCounts(client)
+		monitorExistingChannels(client)
+		await Promise.all([
+			startTwitchLiveNotification(client, 'vvvmeovvv'),
+			startYouTubeVideoNotification(client, YOUTUBE_CHANNEL_ID),
+		])
 	} catch (error) {
 		console.error(error)
 	}
