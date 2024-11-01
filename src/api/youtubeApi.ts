@@ -54,7 +54,7 @@ export const fetchLatestYouTubeVideo = async (
 		err(new Error('YouTube最新動画取得エラー'))
 	}
 	const data = (await response.json()) as Playlist
-	if (!data.items) {
+	if (!data.items || data.items.length === 0) {
 		throw new Error('最新動画が見つかりませんでした')
 	}
 	return ok(data.items[0])
