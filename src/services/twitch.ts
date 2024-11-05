@@ -170,11 +170,19 @@ const sendTwitchStreamingNotification = async (
 			iconURL: 'https://static.twitchcdn.net/assets/favicon-32-e29e246c157142c94346.png',
 		}) // 埋め込みの下部に表示されるフッターを設定
 
+	// 配信開始時にDiscordに通知を送信
+	const embedMessage = `@everyone ${userName}がTwitchで配信を開始しました!`
 	// 配信開始時にTwitterにツイートを投稿
-	const tweetText = `${userName}がTwitchで配信を開始しました! \n\n🎮 ゲーム: ${gameName}\n📺 タイトル: ${title}\n\n視聴はこちら: https://www.twitch.tv/${userLogin} \n\n#Twitch #配信`
+	const tweetText = `${userName}がTwitchで配信を開始しました! \n\n🎮 ゲーム: ${gameName}\n📺 タイトル: ${title}\n\n視聴はこちら: https://www.twitch.tv/${userLogin} \n\n#Twitch #配信 #${gameName}`
 	// メッセージを送信
 	await Promise.all([
-		sendDiscordEmbedMessage(client, DISCORD_GUILD_ID, DISCORD_STREAMS_CHANNEL_ID, embed),
+		sendDiscordEmbedMessage(
+			client,
+			DISCORD_GUILD_ID,
+			DISCORD_STREAMS_CHANNEL_ID,
+			embed,
+			embedMessage
+		),
 		postTweet(tweetText),
 	])
 }
@@ -191,7 +199,8 @@ const sendDiscordEmbedMessage = async (
 	client: Client,
 	guildId: string,
 	channelId: string,
-	embed: EmbedBuilder
+	embed: EmbedBuilder,
+	message: string
 ): Promise<void> => {
 	try {
 		// サーバーを取得
@@ -201,6 +210,7 @@ const sendDiscordEmbedMessage = async (
 		if (channel instanceof TextChannel) {
 			// メッセージを送信
 			await channel.send({
+				content: message,
 				embeds: [embed],
 			})
 		} else {
