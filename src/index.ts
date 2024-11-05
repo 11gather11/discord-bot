@@ -170,7 +170,7 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 			// チャンネルがテキストベースか確認し、エラー内容をチャンネルに送信
 			if (channel?.isTextBased()) {
 				const consoleText = styleText('red', `[${timestamp}] ${args.join(' ')}`)
-				await (channel as TextChannel).send(`\`\`\`ansi\n${consoleText}\`\`\``)
+				await (channel as TextChannel).send(`@everyone\`\`\`ansi\n${consoleText}\`\`\``)
 			}
 		} catch (error) {
 			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
