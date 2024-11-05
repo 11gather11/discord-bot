@@ -14,7 +14,8 @@ const MemberCounts = async (client: Client) => {
 		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
 		if (!guild) {
 			// サーバーが見つからなかった場合のエラー処理
-			return console.error('指定されたサーバーが見つかりませんでした')
+			console.error('指定されたサーバーが見つかりませんでした')
+			return
 		}
 
 		// メンバー数を取得
@@ -25,7 +26,8 @@ const MemberCounts = async (client: Client) => {
 		const memberCountChannel = await guild.channels.fetch(DISCORD_MEMBER_COUNT_CHANNEL_ID)
 		if (!memberCountChannel || memberCountChannel.type !== 2) {
 			// チャンネルが見つからなかった場合のエラー処理
-			return console.error('指定されたチャンネルが見つかりませんでした')
+			console.error('指定されたチャンネルが見つかりませんでした')
+			return
 		}
 
 		// チャンネル名を更新
@@ -42,7 +44,7 @@ export const updateMemberCounts = async (client: Client) => {
 	try {
 		// ボット起動時にメンバー数を更新
 		await MemberCounts(client)
-		console.log('メンバー数更新の監視を開始します')
+		console.info('メンバー数更新の監視を開始します')
 
 		// 1時間ごとにメンバー数を更新
 		setInterval(
@@ -51,7 +53,7 @@ export const updateMemberCounts = async (client: Client) => {
 					await MemberCounts(client)
 				} catch (error) {
 					// 定期更新中のエラーをキャッチしてログに出力
-					console.error('定期メンバー数更新中にエラーが発生しました:', (error as Error).message)
+					console.warn('定期メンバー数更新中にエラーが発生しました:', (error as Error).message)
 				}
 			},
 			1000 * 60 * 10 // 10分ごとに更新

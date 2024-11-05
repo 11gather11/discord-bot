@@ -15,7 +15,7 @@ export const name = Events.ClientReady
 export const once = true
 
 export const execute = async (client: Client) => {
-	console.log(`ログイン成功: ${client.user?.tag}`)
+	console.info(`ログイン成功: ${client.user?.tag}`)
 	try {
 		await deployCommands()
 		updateMemberCounts(client)

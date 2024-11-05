@@ -74,7 +74,7 @@ export const startTwitchLiveNotification = async (
 	}, timer)
 
 	// 配信状況の監視を開始
-	console.log(`配信状況の監視を開始しました: ${userLogin}`)
+	console.info(`配信状況の監視を開始しました: ${userLogin}`)
 }
 
 /**
@@ -177,7 +177,6 @@ const sendTwitchStreamingNotification = async (
 		sendDiscordEmbedMessage(client, DISCORD_GUILD_ID, DISCORD_STREAMS_CHANNEL_ID, embed),
 		postTweet(tweetText),
 	])
-	console.log('Twitch配信通知を送信しました')
 }
 
 /**

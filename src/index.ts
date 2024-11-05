@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { styleText } from 'node:util'
 import { Client, Collection, GatewayIntentBits, type TextChannel } from 'discord.js'
 
 // 環境変数
@@ -63,7 +64,7 @@ const loadCommands = async () => {
 				client.commands.set(command.data.name, command)
 			} else {
 				// data または execute がない場合はエラーを出力
-				console.error(`コマンドファイル ${file} に data または execute が見つかりません`)
+				console.warn(`コマンドファイル ${file} に data または execute が見つかりません`)
 			}
 		}
 	}
@@ -99,7 +100,7 @@ const loadEvents = async () => {
 				}
 				// name と execute がない場合はエラーを出力
 			} else {
-				console.error(`イベントファイル ${file} に name または execute が見つかりません`)
+				console.warn(`イベントファイル ${file} に name または execute が見つかりません`)
 			}
 		}
 	}
@@ -117,6 +118,10 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 	const originalConsoleLog = console.log
 	// 元の console.error を保存
 	const originalConsoleError = console.error
+	// 元の console.info を保存
+	const originalConsoleInfo = console.info
+	// 元の console.warn を保存
+	const originalConsoleWarn = console.warn
 
 	// タイムスタンプを取得する関数
 	const getTimestamp = (): string => {
@@ -145,11 +150,12 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、ログ内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				await (channel as TextChannel).send(`\`\`\`[${timestamp}] ${args.join(' ')}\`\`\``)
+				const consoleText = styleText('white', `[${timestamp}] ${args.join(' ')}`)
+				await (channel as TextChannel).send(`\`\`\`ansi\n${consoleText}\`\`\``)
 			}
 		} catch (error) {
 			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
-			originalConsoleLog('Failed to send log to channel:', error)
+			originalConsoleLog('Discordへのログ送信に失敗しました:', error)
 		}
 	}
 
@@ -163,13 +169,51 @@ const overrideConsole = (client: Client, logChannelId?: string): void => {
 			const channel = await client.channels.fetch(logChannelId)
 			// チャンネルがテキストベースか確認し、エラー内容をチャンネルに送信
 			if (channel?.isTextBased()) {
-				await (channel as TextChannel).send(
-					`\`\`\`ansi\n\u001b[0;31m[${timestamp}] ${args.join(' ')}\`\`\``
-				)
+				const consoleText = styleText('red', `[${timestamp}] ${args.join(' ')}`)
+				await (channel as TextChannel).send(`\`\`\`ansi\n${consoleText}\`\`\``)
 			}
 		} catch (error) {
 			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
-			originalConsoleError('Failed to send error to channel:', error)
+			originalConsoleError('Discordへのエラー送信に失敗しました:', error)
+		}
+	}
+
+	// console.info のオーバーライド
+	console.info = async (...args: unknown[]): Promise<void> => {
+		const timestamp = getTimestamp()
+		// 元の console.info を呼び出して情報をコンソールに出力
+		originalConsoleInfo.apply(console, [`[${timestamp}]`, ...args])
+		try {
+			// 指定されたチャンネルIDを使用してチャンネルを取得
+			const channel = await client.channels.fetch(logChannelId)
+			// チャンネルがテキストベースか確認し、情報内容をチャンネルに送信
+			if (channel?.isTextBased()) {
+				const consoleText = styleText('green', `[${timestamp}] ${args.join(' ')}`)
+				await (channel as TextChannel).send(`\`\`\`ansi\n${consoleText}\`\`\``)
+			}
+		} catch (error) {
+			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
+			originalConsoleInfo('Discordへの情報送信に失敗しました:', error)
+		}
+	}
+
+	// console.warn のオーバーライド
+	console.warn = async (...args: unknown[]): Promise<void> => {
+		const timestamp = getTimestamp()
+		// 元の console.warn を呼び出して警告をコンソールに出力
+		originalConsoleWarn.apply(console, [`[${timestamp}]`, ...args])
+
+		try {
+			// 指定されたチャンネルIDを使用してチャンネルを取得
+			const channel = await client.channels.fetch(logChannelId)
+			// チャンネルがテキストベースか確認し、警告内容をチャンネルに送信
+			if (channel?.isTextBased()) {
+				const consoleText = styleText('yellow', `[${timestamp}] ${args.join(' ')}`)
+				await (channel as TextChannel).send(`\`\`\`ansi\n${consoleText}\`\`\``)
+			}
+		} catch (error) {
+			// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
+			originalConsoleWarn('Discordへの警告送信に失敗しました:', error)
 		}
 	}
 }

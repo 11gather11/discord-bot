@@ -29,7 +29,7 @@ export const deployCommands = async () => {
 			if ('data' in command && 'execute' in command) {
 				commands.push(command.data.toJSON())
 			} else {
-				console.error(`コマンドファイル ${file} に data または execute が見つかりません`)
+				console.warn(`コマンドファイル ${file} に data または execute が見つかりません`)
 			}
 		}
 	}
@@ -43,7 +43,7 @@ export const deployCommands = async () => {
 					? Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID)
 					: Routes.applicationCommands(DISCORD_CLIENT_ID)
 			const data = (await rest.put(route, { body: commands })) as APIApplicationCommand[]
-			console.log(`${env}環境用 ${data.length} 個のアプリケーションコマンドを登録しました。`)
+			console.info(`${env}環境用 ${data.length} 個のアプリケーションコマンドを登録しました。`)
 		} catch (error) {
 			console.error(error)
 		}

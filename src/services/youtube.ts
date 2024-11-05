@@ -50,7 +50,7 @@ export const startYouTubeVideoNotification = async (
 	}, timer)
 
 	// 動画投稿の監視を開始
-	console.log(`YouTube動画投稿の監視を開始しました: ${channelId}`)
+	console.info(`YouTube動画投稿の監視を開始しました: ${channelId}`)
 }
 
 /**
@@ -93,24 +93,24 @@ const initLastVideoId = async (uploadsPlaylistId: string): Promise<Result<string
 
 // YouTubeの新しい動画の通知を送信
 const sendYouTubeVideoNotification = async (client: Client, videoId: string): Promise<void> => {
-	try {
-		// サーバーを取得
-		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
-		// チャンネルを取得
-		const channel = await guild.channels.fetch(DISCORD_VIDEOS_CHANNEL_ID)
-		// チャンネルが見つからない場合はエラーを出力
-		if (!channel) {
-			return console.error('指定されたチャンネルが見つかりませんでした')
-		}
-		if (channel.isTextBased()) {
+	// サーバーを取得
+	const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
+	// チャンネルを取得
+	const channel = await guild.channels.fetch(DISCORD_VIDEOS_CHANNEL_ID)
+	// チャンネルが見つからない場合はエラーを出力
+	if (!channel) {
+		console.error('指定されたチャンネルが見つかりませんでした')
+		return
+	}
+	if (channel.isTextBased()) {
+		try {
 			await channel.send({
 				content: `@everyone 新しい動画が投稿されました！\nhttps://www.youtube.com/watch?v=${videoId}`,
 			})
-			console.log('YouTube動画通知を送信しました')
-		} else {
-			console.error('指定されたチャンネルIDはテキストチャンネルではありません')
+		} catch (error) {
+			console.error('動画の通知に失敗しました:', (error as Error).message)
 		}
-	} catch (error) {
-		console.error('YouTube動画通知送信エラー:', (error as Error).message)
+	} else {
+		console.error('指定されたチャンネルIDはテキストチャンネルではありません')
 	}
 }

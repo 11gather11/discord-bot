@@ -56,7 +56,8 @@ export const monitorExistingChannels = async (client: Client) => {
 	// 指定されたカテゴリ内のチャンネルを取得
 	const categoryChannel = await client.channels.fetch(DISCORD_FREE_VOICE_CATEGORY_ID)
 	if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {
-		return console.error('カテゴリが見つかりません')
+		console.error('カテゴリが見つかりません')
+		return
 	}
 	// カテゴリ内のボイスチャンネルをフィルタリング
 	const voiceChannels = categoryChannel.children.cache.filter(
@@ -70,5 +71,5 @@ export const monitorExistingChannels = async (client: Client) => {
 			await voiceChannel.delete()
 		}
 	}
-	console.log(`フリーボイスチャンネルを再監視: ${voiceChannels.size}個`)
+	console.info(`フリーボイスチャンネルを再監視: ${voiceChannels.size}個`)
 }
