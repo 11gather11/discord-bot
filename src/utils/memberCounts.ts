@@ -8,7 +8,7 @@ if (!(DISCORD_GUILD_ID && DISCORD_MEMBER_COUNT_CHANNEL_ID)) {
 }
 
 // メンバー数を更新する関数
-const MemberCounts = async (client: Client) => {
+const memberCounts = async (client: Client) => {
 	try {
 		// サーバーを取得
 		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
@@ -43,14 +43,14 @@ const MemberCounts = async (client: Client) => {
 export const updateMemberCounts = async (client: Client) => {
 	try {
 		// ボット起動時にメンバー数を更新
-		await MemberCounts(client)
+		await memberCounts(client)
 		console.info('メンバー数更新の監視を開始します')
 
 		// 1時間ごとにメンバー数を更新
 		setInterval(
 			async () => {
 				try {
-					await MemberCounts(client)
+					await memberCounts(client)
 				} catch (error) {
 					// 定期更新中のエラーをキャッチしてログに出力
 					console.warn('定期メンバー数更新中にエラーが発生しました:', (error as Error).message)
