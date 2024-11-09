@@ -1,7 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-
-import { overrideConsole } from '@/utils/overrideConsole'
 import { Client, Collection, GatewayIntentBits } from 'discord.js'
 
 // 環境変数
@@ -27,7 +25,6 @@ client.commands = new Collection()
 
 //初期化
 const initialize = async () => {
-	await overrideConsole(client, DISCORD_GUILD_ID, DISCORD_LOG_CHANNEL_ID)
 	try {
 		await loadCommands()
 		await loadEvents()

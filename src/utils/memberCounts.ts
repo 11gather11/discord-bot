@@ -12,11 +12,6 @@ const memberCounts = async (client: Client) => {
 	try {
 		// サーバーを取得
 		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
-		if (!guild) {
-			// サーバーが見つからなかった場合のエラー処理
-			console.error('指定されたサーバーが見つかりませんでした')
-			return
-		}
 
 		// メンバー数を取得
 		const members = await guild.members.fetch()

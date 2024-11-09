@@ -61,8 +61,8 @@ export const overrideConsole = async (
 			// 元の console.error を呼び出してエラーをコンソールに出力
 			originalConsoleError.apply(console, [`[${timestamp}]`, ...args])
 			try {
-				const consoleText = styleText('white', `[${timestamp}] ${args.join(' ')}`)
-				await channel.send(`\`\`\`ansi\n${consoleText}\`\`\``)
+				const consoleText = styleText('red', `[${timestamp}] ${args.join(' ')}`)
+				await channel.send(`@everyone\`\`\`ansi\n${consoleText}\`\`\``)
 			} catch (error) {
 				// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
 				originalConsoleError('Discordへのエラー送信に失敗しました:', error)
@@ -75,7 +75,7 @@ export const overrideConsole = async (
 			// 元の console.info を呼び出して情報をコンソールに出力
 			originalConsoleInfo.apply(console, [`[${timestamp}]`, ...args])
 			try {
-				const consoleText = styleText('white', `[${timestamp}] ${args.join(' ')}`)
+				const consoleText = styleText('green', `[${timestamp}] ${args.join(' ')}`)
 				await channel.send(`\`\`\`ansi\n${consoleText}\`\`\``)
 			} catch (error) {
 				// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
@@ -89,7 +89,7 @@ export const overrideConsole = async (
 			// 元の console.warn を呼び出して警告をコンソールに出力
 			originalConsoleWarn.apply(console, [`[${timestamp}]`, ...args])
 			try {
-				const consoleText = styleText('white', `[${timestamp}] ${args.join(' ')}`)
+				const consoleText = styleText('yellow', `[${timestamp}] ${args.join(' ')}`)
 				await channel.send(`\`\`\`ansi\n${consoleText}\`\`\``)
 			} catch (error) {
 				// チャンネルへの送信に失敗した場合、エラーメッセージをコンソールに出力
