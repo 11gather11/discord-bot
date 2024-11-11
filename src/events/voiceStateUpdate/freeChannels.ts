@@ -1,3 +1,4 @@
+import { logger } from '@/helpers/Logger'
 import { ChannelType, type Client, Events, type VoiceChannel, type VoiceState } from 'discord.js'
 
 const { DISCORD_FREE_VOICE_CHANNEL_ID, DISCORD_FREE_VOICE_CATEGORY_ID } = process.env
@@ -56,7 +57,7 @@ export const monitorExistingChannels = async (client: Client) => {
 	// 指定されたカテゴリ内のチャンネルを取得
 	const categoryChannel = await client.channels.fetch(DISCORD_FREE_VOICE_CATEGORY_ID)
 	if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {
-		console.error('カテゴリが見つかりません')
+		logger.error('カテゴリが見つかりません')
 		return
 	}
 	// カテゴリ内のボイスチャンネルをフィルタリング
@@ -71,5 +72,5 @@ export const monitorExistingChannels = async (client: Client) => {
 			await voiceChannel.delete()
 		}
 	}
-	console.info(`フリーボイスチャンネルを再監視: ${voiceChannels.size}個`)
+	logger.success(`フリーボイスチャンネルを再監視: ${voiceChannels.size}個`)
 }

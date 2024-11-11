@@ -1,9 +1,9 @@
 import { deployCommands } from '@/deployCommands'
 import { monitorExistingChannels } from '@/events/voiceStateUpdate/freeChannels'
+import { logger } from '@/helpers/Logger'
 import { startTwitchLiveNotification } from '@/services/twitch'
 import { startYouTubeVideoNotification } from '@/services/youtube'
 import { updateMemberCounts } from '@/utils/memberCounts'
-import { overrideConsole } from '@/utils/overrideConsole'
 import { type Client, Events } from 'discord.js'
 
 const { YOUTUBE_CHANNEL_ID, DISCORD_GUILD_ID, DISCORD_LOG_CHANNEL_ID } = process.env
@@ -16,8 +16,7 @@ export const name = Events.ClientReady
 export const once = true
 
 export const execute = async (client: Client) => {
-	await overrideConsole(client, DISCORD_GUILD_ID, DISCORD_LOG_CHANNEL_ID)
-	console.info(`ログイン成功: ${client.user?.tag}`)
+	logger.success(`ログイン成功: ${client.user?.tag}`)
 	try {
 		await deployCommands()
 		updateMemberCounts(client)
@@ -27,6 +26,6 @@ export const execute = async (client: Client) => {
 			startYouTubeVideoNotification(client, YOUTUBE_CHANNEL_ID),
 		])
 	} catch (error) {
-		console.error(error)
+		logger.error(error)
 	}
 }

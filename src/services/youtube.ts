@@ -1,4 +1,5 @@
 import { fetchLatestYouTubeVideo, fetchUploadsPlaylistId } from '@/api/youtubeApi'
+import { logger } from '@/helpers/Logger'
 import type { Client } from 'discord.js'
 import { type Result, err, ok } from 'neverthrow'
 
@@ -22,14 +23,14 @@ export const startYouTubeVideoNotification = async (
 	// 起動時にプレイリストIDを取得
 	const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)
 	if (uploadsPlaylistId.isErr()) {
-		console.error(uploadsPlaylistId.error)
+		logger.error(uploadsPlaylistId.error)
 		return
 	}
 
 	// 最新動画IDを取得
 	const lastVideoIdResult = await initLastVideoId(uploadsPlaylistId.value)
 	if (lastVideoIdResult.isErr()) {
-		console.error(lastVideoIdResult.error)
+		logger.error(lastVideoIdResult.error)
 		return
 	}
 	let lastVideoId = lastVideoIdResult.value
@@ -43,14 +44,14 @@ export const startYouTubeVideoNotification = async (
 			lastVideoId
 		)
 		if (youTubeVideoNotificationResult.isErr()) {
-			console.error(youTubeVideoNotificationResult.error)
+			logger.error(youTubeVideoNotificationResult.error)
 			return clearInterval(interval)
 		}
 		lastVideoId = youTubeVideoNotificationResult.value
 	}, timer)
 
 	// 動画投稿の監視を開始
-	console.info(`YouTube動画投稿の監視を開始しました: ${channelId}`)
+	logger.success(`YouTube動画投稿の監視を開始しました: ${channelId}`)
 }
 
 /**
@@ -99,7 +100,7 @@ const sendYouTubeVideoNotification = async (client: Client, videoId: string): Pr
 	const channel = await guild.channels.fetch(DISCORD_VIDEOS_CHANNEL_ID)
 	// チャンネルが見つからない場合はエラーを出力
 	if (!channel) {
-		console.error('指定されたチャンネルが見つかりませんでした')
+		logger.error('指定されたチャンネルが見つかりませんでした')
 		return
 	}
 	if (channel.isTextBased()) {
@@ -108,9 +109,9 @@ const sendYouTubeVideoNotification = async (client: Client, videoId: string): Pr
 				content: `@everyone 新しい動画が投稿されました！\nhttps://www.youtube.com/watch?v=${videoId}`,
 			})
 		} catch (error) {
-			console.error('動画の通知に失敗しました:', (error as Error).message)
+			logger.error('動画の通知に失敗しました:', (error as Error).message)
 		}
 	} else {
-		console.error('指定されたチャンネルIDはテキストチャンネルではありません')
+		logger.error('指定されたチャンネルIDはテキストチャンネルではありません')
 	}
 }

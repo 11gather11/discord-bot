@@ -4,6 +4,7 @@ import {
 	fetchTwitchGameInfo,
 	isAccessTokenValid,
 } from '@/api/twitchApi'
+import { logger } from '@/helpers/Logger'
 import { postTweet } from '@/services/twitter'
 import type { TwitchGame, TwitchStream } from '@/types/twitch'
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'
@@ -29,7 +30,7 @@ export const startTwitchLiveNotification = async (
 	// 初回のアクセストークンを取得
 	const tokenResult = await fetchTwitchAccessToken()
 	if (tokenResult.isErr()) {
-		console.error(tokenResult.error)
+		logger.error(tokenResult.error)
 		return
 	}
 	let accessToken = tokenResult.value
@@ -42,7 +43,7 @@ export const startTwitchLiveNotification = async (
 		notified
 	)
 	if (twitchStreamingNotificationResult.isErr()) {
-		console.error(twitchStreamingNotificationResult.error)
+		logger.error(twitchStreamingNotificationResult.error)
 		return
 	}
 	notified = twitchStreamingNotificationResult.value
@@ -55,7 +56,7 @@ export const startTwitchLiveNotification = async (
 		if (AccessTokenValidResult.isOk() && !AccessTokenValidResult.value) {
 			const tokenCheckResult = await fetchTwitchAccessToken()
 			if (tokenCheckResult.isErr()) {
-				console.error(tokenCheckResult.error)
+				logger.error(tokenCheckResult.error)
 				return clearInterval(interval)
 			}
 			accessToken = tokenCheckResult.value
@@ -67,14 +68,14 @@ export const startTwitchLiveNotification = async (
 			notified
 		)
 		if (twitchStreamingNotificationResult.isErr()) {
-			console.error(twitchStreamingNotificationResult.error)
+			logger.error(twitchStreamingNotificationResult.error)
 			return clearInterval(interval)
 		}
 		notified = twitchStreamingNotificationResult.value
 	}, timer)
 
 	// 配信状況の監視を開始
-	console.info(`配信状況の監視を開始しました: ${userLogin}`)
+	logger.success(`配信状況の監視を開始しました: ${userLogin}`)
 }
 
 /**
@@ -214,9 +215,9 @@ const sendDiscordEmbedMessage = async (
 				embeds: [embed],
 			})
 		} else {
-			console.error('指定されたチャンネルIDはテキストチャンネルではありません')
+			logger.error('指定されたチャンネルIDはテキストチャンネルではありません')
 		}
 	} catch (error) {
-		console.error('Discord埋め込みメッセージの送信に失敗しました:', (error as Error).message)
+		logger.error('Discord埋め込みメッセージの送信に失敗しました:', (error as Error).message)
 	}
 }

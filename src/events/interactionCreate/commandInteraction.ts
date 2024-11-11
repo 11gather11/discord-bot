@@ -1,3 +1,4 @@
+import { logger } from '@/helpers/Logger'
 import { sendErrorReply } from '@/utils/sendErrorReply'
 import { Collection, EmbedBuilder, Events, type Interaction } from 'discord.js'
 
@@ -63,7 +64,7 @@ export const execute = async (interaction: Interaction) => {
 		await command.execute(interaction)
 	} catch (error) {
 		// エラーが発生した場合はエラーを出力
-		console.error(error)
+		logger.error(error)
 
 		await sendErrorReply(interaction, 'コマンドの実行中にエラーが発生しました。')
 	}

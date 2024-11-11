@@ -1,3 +1,4 @@
+import { logger } from '@/helpers/Logger'
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -82,13 +83,13 @@ export const minecraftFormSubmitHandler = async (interaction: ModalSubmitInterac
 		// フォームの送信者を取得
 		const guild = interaction.guild
 		if (!guild) {
-			console.error('サーバーが見つかりませんでした。')
+			logger.error('サーバーが見つかりませんでした。')
 			return
 		}
 		// フォームの送信者が入力したデータをチャンネルに送信
 		const channel = await guild.channels.fetch(DISCORD_MINECRAFT_CHANNEL_ID)
 		if (!channel?.isTextBased()) {
-			console.error('チャンネルが見つかりませんでした。')
+			logger.error('チャンネルが見つかりませんでした。')
 			return
 		}
 

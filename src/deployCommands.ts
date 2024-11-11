@@ -1,13 +1,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { logger } from '@/helpers/Logger'
 import type { Command } from '@/types/client'
 import { type APIApplicationCommand, REST, Routes } from 'discord.js'
 
 // 環境変数
 const { DISCORD_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_TOKEN } = process.env
 if (!(DISCORD_CLIENT_ID && DISCORD_GUILD_ID && DISCORD_TOKEN)) {
-	console.error('環境変数が設定されていません')
+	logger.error('環境変数が設定されていません')
 	process.exit(1)
 }
 
@@ -29,7 +30,7 @@ export const deployCommands = async () => {
 			if ('data' in command && 'execute' in command) {
 				commands.push(command.data.toJSON())
 			} else {
-				console.warn(`コマンドファイル ${file} に data または execute が見つかりません`)
+				logger.warn(`コマンドファイル ${file} に data または execute が見つかりません`)
 			}
 		}
 	}
@@ -43,9 +44,9 @@ export const deployCommands = async () => {
 					? Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID)
 					: Routes.applicationCommands(DISCORD_CLIENT_ID)
 			const data = (await rest.put(route, { body: commands })) as APIApplicationCommand[]
-			console.info(`${env}環境用 ${data.length} 個のアプリケーションコマンドを登録しました。`)
+			logger.success(`${env}環境用 ${data.length} 個のアプリケーションコマンドを登録しました。`)
 		} catch (error) {
-			console.error(error)
+			logger.error(error)
 		}
 	})()
 }

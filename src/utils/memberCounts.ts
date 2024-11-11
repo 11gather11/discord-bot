@@ -1,3 +1,4 @@
+import { logger } from '@/helpers/Logger'
 import type { Client } from 'discord.js'
 
 // 環境変数
@@ -21,7 +22,7 @@ const memberCounts = async (client: Client) => {
 		const memberCountChannel = await guild.channels.fetch(DISCORD_MEMBER_COUNT_CHANNEL_ID)
 		if (!memberCountChannel || memberCountChannel.type !== 2) {
 			// チャンネルが見つからなかった場合のエラー処理
-			console.error('指定されたチャンネルが見つかりませんでした')
+			logger.error('指定されたチャンネルが見つかりませんでした')
 			return
 		}
 
@@ -30,7 +31,7 @@ const memberCounts = async (client: Client) => {
 		await memberCountChannel.setName(newChannelName)
 	} catch (error) {
 		// エラー発生時に例外をスローしつつ、エラーログを出力
-		console.error('メンバー数更新中にエラーが発生しました:', (error as Error).message)
+		logger.error('メンバー数更新中にエラーが発生しました:', (error as Error).message)
 	}
 }
 
@@ -39,7 +40,7 @@ export const updateMemberCounts = async (client: Client) => {
 	try {
 		// ボット起動時にメンバー数を更新
 		await memberCounts(client)
-		console.info('メンバー数更新の監視を開始します')
+		logger.success('メンバー数更新の監視を開始します')
 
 		// 1時間ごとにメンバー数を更新
 		setInterval(
@@ -48,13 +49,13 @@ export const updateMemberCounts = async (client: Client) => {
 					await memberCounts(client)
 				} catch (error) {
 					// 定期更新中のエラーをキャッチしてログに出力
-					console.warn('定期メンバー数更新中にエラーが発生しました:', (error as Error).message)
+					logger.warn('定期メンバー数更新中にエラーが発生しました:', (error as Error).message)
 				}
 			},
 			1000 * 60 * 10 // 10分ごとに更新
 		)
 	} catch (error) {
 		// 初期更新時のエラーをキャッチしてログに出力
-		console.error('初期メンバー数更新に失敗しました:', (error as Error).message)
+		logger.error('初期メンバー数更新に失敗しました:', (error as Error).message)
 	}
 }

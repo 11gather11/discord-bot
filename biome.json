@@ -10,9 +10,6 @@
 		"enabled": true,
 		"rules": {
 			"all": true,
-			"suspicious": {
-				"noConsole": "off"
-			},
 			"correctness": {
 				"noNodejsModules": "off"
 			}

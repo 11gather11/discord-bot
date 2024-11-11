@@ -1,3 +1,4 @@
+import { logger } from '@/helpers/Logger'
 import TwitterApi, { type ErrorV2 } from 'twitter-api-v2'
 
 const {
@@ -30,7 +31,7 @@ export const postTweet = async (text: string): Promise<void> => {
 	try {
 		await twitterClient.v2.tweet(text)
 	} catch (error) {
-		console.error('ツイートの投稿に失敗しました:', (error as ErrorV2).errors)
+		logger.error('ツイートの投稿に失敗しました:', (error as ErrorV2).errors)
 		return
 	}
 }

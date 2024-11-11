@@ -1,11 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { logger } from '@/helpers/Logger'
 import { Client, Collection, GatewayIntentBits } from 'discord.js'
 
 // 環境変数
-const { DISCORD_TOKEN, DISCORD_GUILD_ID, DISCORD_LOG_CHANNEL_ID } = process.env
+const { DISCORD_TOKEN } = process.env
 
-if (!(DISCORD_TOKEN && DISCORD_GUILD_ID && DISCORD_LOG_CHANNEL_ID)) {
+if (!DISCORD_TOKEN) {
 	throw new Error('環境変数が設定されていません')
 }
 
@@ -30,7 +31,7 @@ const initialize = async () => {
 		await loadEvents()
 		await client.login(DISCORD_TOKEN)
 	} catch (error) {
-		console.error('初期化中にエラーが発生しました:', (error as Error).message)
+		logger.error('初期化中にエラーが発生しました', error)
 		process.exit(1)
 	}
 }
@@ -61,7 +62,7 @@ const loadCommands = async () => {
 				client.commands.set(command.data.name, command)
 			} else {
 				// data または execute がない場合はエラーを出力
-				console.warn(`コマンドファイル ${file} に data または execute が見つかりません`)
+				logger.warn(`コマンドファイル ${file} に data または execute が見つかりません`)
 			}
 		}
 	}
@@ -97,7 +98,7 @@ const loadEvents = async () => {
 				}
 				// name と execute がない場合はエラーを出力
 			} else {
-				console.warn(`イベントファイル ${file} に name または execute が見つかりません`)
+				logger.warn(`イベントファイル ${file} に name または execute が見つかりません`)
 			}
 		}
 	}
