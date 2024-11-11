@@ -4,6 +4,10 @@ import winston from 'winston'
 // 環境変数から Discord の Webhook URL を取得
 const { DISCORD_LOG_WEBHOOK_URL } = process.env
 
+// ログファイルの最大サイズと最大数を定義
+const LOG_MAX_SIZE = 1024 * 1024 * 10 // 10MB
+const LOG_MAX_FILES = 5
+
 // WebhookClient のインスタンスを作成（URL が存在する場合のみ）
 const webhookLogger = DISCORD_LOG_WEBHOOK_URL
 	? new WebhookClient({ url: DISCORD_LOG_WEBHOOK_URL })
@@ -133,6 +137,9 @@ const createFileTransport = (level: LogLevel) => {
 				return `[${timestamp}] [${level.toUpperCase()}]: ${message}`
 			})
 		),
+		maxsize: LOG_MAX_SIZE, // ログファイルの最大サイズを指定
+		maxFiles: LOG_MAX_FILES, // ログファイルの最大数を指定
+		tailable: true, // ログファイルをローテーションする
 	})
 }
 
