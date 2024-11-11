@@ -1,6 +1,6 @@
 import { deployCommands } from '@/deployCommands'
 import { monitorExistingChannels } from '@/events/voiceStateUpdate/freeChannels'
-import { logger } from '@/helpers/Logger'
+import { logger } from '@/helpers/logger'
 import { startTwitchLiveNotification } from '@/services/twitch'
 import { startYouTubeVideoNotification } from '@/services/youtube'
 import { updateMemberCounts } from '@/utils/memberCounts'

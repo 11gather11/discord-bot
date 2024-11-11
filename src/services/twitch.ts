@@ -4,7 +4,7 @@ import {
 	fetchTwitchGameInfo,
 	isAccessTokenValid,
 } from '@/api/twitchApi'
-import { logger } from '@/helpers/Logger'
+import { logger } from '@/helpers/logger'
 import { postTweet } from '@/services/twitter'
 import type { TwitchGame, TwitchStream } from '@/types/twitch'
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'

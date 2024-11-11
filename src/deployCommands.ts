@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { logger } from '@/helpers/Logger'
+import { logger } from '@/helpers/logger'
 import type { Command } from '@/types/client'
 import { type APIApplicationCommand, REST, Routes } from 'discord.js'
 

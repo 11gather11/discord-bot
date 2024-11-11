@@ -1,4 +1,4 @@
-import { logger } from '@/helpers/Logger'
+import { logger } from '@/helpers/logger'
 import { ChannelType, type Client, Events, type VoiceChannel, type VoiceState } from 'discord.js'
 
 const { DISCORD_FREE_VOICE_CHANNEL_ID, DISCORD_FREE_VOICE_CATEGORY_ID } = process.env

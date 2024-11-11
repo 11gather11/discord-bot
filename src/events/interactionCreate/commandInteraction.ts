@@ -1,4 +1,4 @@
-import { logger } from '@/helpers/Logger'
+import { logger } from '@/helpers/logger'
 import { sendErrorReply } from '@/utils/sendErrorReply'
 import { Collection, EmbedBuilder, Events, type Interaction } from 'discord.js'
 

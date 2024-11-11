@@ -1,5 +1,5 @@
 import { fetchLatestYouTubeVideo, fetchUploadsPlaylistId } from '@/api/youtubeApi'
-import { logger } from '@/helpers/Logger'
+import { logger } from '@/helpers/logger'
 import type { Client } from 'discord.js'
 import { type Result, err, ok } from 'neverthrow'
 

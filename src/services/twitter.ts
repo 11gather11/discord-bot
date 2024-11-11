@@ -1,4 +1,4 @@
-import { logger } from '@/helpers/Logger'
+import { logger } from '@/helpers/logger'
 import TwitterApi, { type ErrorV2 } from 'twitter-api-v2'
 
 const {
