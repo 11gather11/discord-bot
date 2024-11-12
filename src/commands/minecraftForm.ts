@@ -1,13 +1,11 @@
 import { logger } from '@/helpers/logger'
+import type { Command } from '@/types/client'
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
-	type ButtonInteraction,
 	ButtonStyle,
-	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	ModalBuilder,
-	type ModalSubmitInteraction,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextInputBuilder,
@@ -20,40 +18,38 @@ if (!DISCORD_MINECRAFT_CHANNEL_ID) {
 	throw new Error('環境変数が設定されていません')
 }
 
-// コマンドのデータ
-export const data = new SlashCommandBuilder()
-	.setName('マインクラフト参加フォーム')
-	.setDescription('Minecraftの参加フォームを作成します')
-	.setDefaultMemberPermissions(PermissionFlagsBits.Administrator) // 管理者のみ実行可能
+const command: Command = {
+	// コマンドのデータ
+	command: new SlashCommandBuilder()
+		.setName('マインクラフト参加フォーム')
+		.setDescription('Minecraftの参加フォームを作成します')
+		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator), // 管理者のみ実行可能
 
-export const execute = async (interaction: ChatInputCommandInteraction) => {
-	// 「参加はこちら」ボタンを作成
-	const button = new ButtonBuilder()
-		.setCustomId('minecraftForm')
-		.setLabel('参加はこちら')
-		.setStyle(ButtonStyle.Success)
+	execute: async (interaction) => {
+		// 「参加はこちら」ボタンを作成
+		const button = new ButtonBuilder()
+			.setCustomId('マインクラフト参加フォーム')
+			.setLabel('参加はこちら')
+			.setStyle(ButtonStyle.Success)
 
-	// ボタンを含むアクションロウを作成
-	const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(button)
+		// ボタンを含むアクションロウを作成
+		const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(button)
 
-	const embed = new EmbedBuilder()
-		.setTitle('🕋Minecraftサーバー参加フォーム')
-		.setDescription('Minecraftサーバーに参加するには、以下のボタンをクリックしてください。')
-		.setColor(0x00ae86)
+		const embed = new EmbedBuilder()
+			.setTitle('🕋Minecraftサーバー参加フォーム')
+			.setDescription('Minecraftサーバーに参加するには、以下のボタンをクリックしてください。')
+			.setColor(0x00ae86)
 
-	// ボタンを含むメッセージを送信
-	await interaction.reply({
-		embeds: [embed],
-		components: [actionRow],
-	})
-}
-
-// ボタンがクリックされたときの処理
-export const minecraftFormButtonHandler = async (interaction: ButtonInteraction) => {
-	if (interaction.customId === 'minecraftForm') {
+		// ボタンを含むメッセージを送信
+		await interaction.reply({
+			embeds: [embed],
+			components: [actionRow],
+		})
+	},
+	button: async (interaction) => {
 		// フォームの作成
 		const form = new ModalBuilder()
-			.setCustomId('minecraftForm')
+			.setCustomId('マインクラフト参加フォーム')
 			.setTitle('🕋マインクラフト参加フォーム')
 
 		// ユーザー名の入力フィールドを作成
@@ -71,12 +67,8 @@ export const minecraftFormButtonHandler = async (interaction: ButtonInteraction)
 
 		// フォームを表示
 		await interaction.showModal(form)
-	}
-}
-
-// フォーム送信時の処理
-export const minecraftFormSubmitHandler = async (interaction: ModalSubmitInteraction) => {
-	if (interaction.customId === 'minecraftForm') {
+	},
+	modal: async (interaction) => {
 		// フォームから送信されたデータを取得
 		const minecraftUsername = interaction.fields.getTextInputValue('minecraftUsername')
 
@@ -112,5 +104,7 @@ export const minecraftFormSubmitHandler = async (interaction: ModalSubmitInterac
 			embeds: [replyEmbed],
 			ephemeral: true, // メッセージを送信者にのみ表示
 		})
-	}
+	},
 }
+
+export default command

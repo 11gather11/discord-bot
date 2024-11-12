@@ -1,4 +1,5 @@
 import { logger } from '@/helpers/logger'
+import type { BotEvent } from '@/types/client'
 import { ChannelType, type Client, Events, type VoiceChannel, type VoiceState } from 'discord.js'
 
 const { DISCORD_FREE_VOICE_CHANNEL_ID, DISCORD_FREE_VOICE_CATEGORY_ID } = process.env
@@ -7,17 +8,18 @@ if (!(DISCORD_FREE_VOICE_CHANNEL_ID && DISCORD_FREE_VOICE_CATEGORY_ID)) {
 	throw new Error('環境変数が設定されていません')
 }
 
-// イベント名をVoiceStateUpdateに設定
-export const name = Events.VoiceStateUpdate
+const event: BotEvent = {
+	// イベント名をVoiceStateUpdateに設定
+	name: Events.VoiceStateUpdate,
 
-// イベントが発生した際に実行される関数
-export const execute = (oldState: VoiceState, newState: VoiceState) => {
-	// 新しい一時チャンネルの作成
-	createNewVoiceChannel(newState)
-	// 空のチャンネルの削除
-	deleteEmptyChannel(oldState)
+	// イベントが発生した際に実行される関数
+	execute: (oldState: VoiceState, newState: VoiceState) => {
+		// 新しい一時チャンネルの作成
+		createNewVoiceChannel(newState)
+		// 空のチャンネルの削除
+		deleteEmptyChannel(oldState)
+	},
 }
-
 const createNewVoiceChannel = async (newState: VoiceState) => {
 	// フリー作成チャンネル以外の場合は処理を終了
 	if (newState.channelId !== DISCORD_FREE_VOICE_CHANNEL_ID) {
@@ -74,3 +76,5 @@ export const monitorExistingChannels = async (client: Client) => {
 	}
 	logger.success(`フリーボイスチャンネルを再監視: ${voiceChannels.size}個`)
 }
+
+export default event

@@ -1,3 +1,4 @@
+import type { Command } from '@/types/client'
 import { sendErrorReply } from '@/utils/sendErrorReply'
 import {
 	type ChatInputCommandInteraction,
@@ -13,46 +14,46 @@ if (!(DISCORD_FREE_VOICE_CHANNEL_ID && DISCORD_FREE_VOICE_CATEGORY_ID)) {
 	throw new Error('環境変数が設定されていません')
 }
 
-// コマンドの設定をエクスポート
-export const data = new SlashCommandBuilder()
-	.setName('フリーチャンネル')
-	.setDescription('フリーチャンネルの設定コマンドです。')
-	.addSubcommand((subcommand) =>
-		subcommand
-			.setName('名前変更')
-			.setDescription('フリーチャンネルの名前を変更します。')
-			.addStringOption((option) =>
-				option
-					.setName('名前')
-					.setDescription('新しい名前を入力してください。')
-					.setRequired(true)
-					.setMinLength(5)
-					.setMaxLength(30)
-			)
-	)
-	.addSubcommand((subcommand) =>
-		subcommand
-			.setName('人数制限')
-			.setDescription('フリーチャンネルの人数制限を設定します。')
-			.addIntegerOption((option) =>
-				option
-					.setName('人数')
-					.setDescription('人数制限を入力してください。(0で制限なし)')
-					.setRequired(true)
-					.setMinValue(0)
-					.setMaxValue(99)
-			)
-	)
+const command: Command = {
+	command: new SlashCommandBuilder()
+		.setName('フリーチャンネル')
+		.setDescription('フリーチャンネルの設定コマンドです。')
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('名前変更')
+				.setDescription('フリーチャンネルの名前を変更します。')
+				.addStringOption((option) =>
+					option
+						.setName('名前')
+						.setDescription('新しい名前を入力してください。')
+						.setRequired(true)
+						.setMinLength(5)
+						.setMaxLength(30)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('人数制限')
+				.setDescription('フリーチャンネルの人数制限を設定します。')
+				.addIntegerOption((option) =>
+					option
+						.setName('人数')
+						.setDescription('人数制限を入力してください。(0で制限なし)')
+						.setRequired(true)
+						.setMinValue(0)
+						.setMaxValue(99)
+				)
+		),
 
-// コマンドが実行されたときの処理
-export const execute = async (interaction: ChatInputCommandInteraction) => {
-	// サブコマンドを取得
-	const subcommand = interaction.options.getSubcommand()
-	if (subcommand === 'rename') {
-		await renameFreeChannel(interaction)
-	} else if (subcommand === 'limit') {
-		await setLimit(interaction)
-	}
+	execute: async (interaction) => {
+		// サブコマンドを取得
+		const subcommand = interaction.options.getSubcommand()
+		if (subcommand === 'rename') {
+			await renameFreeChannel(interaction)
+		} else if (subcommand === 'limit') {
+			await setLimit(interaction)
+		}
+	},
 }
 
 // フリーチャンネルの名前を変更する関数
@@ -123,3 +124,5 @@ const setLimit = async (interaction: ChatInputCommandInteraction) => {
 		ephemeral: true,
 	})
 }
+
+export default command

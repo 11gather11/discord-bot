@@ -1,3 +1,5 @@
+import { config } from '@/config/config'
+import type { Command } from '@/types/client'
 import { sendErrorReply } from '@/utils/sendErrorReply'
 import {
 	ActionRowBuilder,
@@ -12,70 +14,70 @@ import {
 	SlashCommandBuilder,
 } from 'discord.js'
 
-// コマンドの設定をエクスポート
-export const data = new SlashCommandBuilder()
-	.setName('じゃんけん')
-	.setDescription('じゃんけんゲームを開始します。')
-	.addSubcommand((subcommand) =>
-		subcommand
-			.setName('通常')
-			.setDescription('通常のじゃんけんゲームを開始します。')
-			.addIntegerOption((option) =>
-				option
-					.setName('秒数')
-					.setDescription('じゃんけんを行う時間を秒単位で指定します。(デフォルト: 10秒)')
-					.setMinValue(5)
-					.setMaxValue(60)
-			)
-	)
-	.addSubcommand((subcommand) =>
-		subcommand
-			.setName('チャンネル内')
-			.setDescription('同じVCにいるユーザーだけが参加できるじゃんけんを開始します。')
-			.addIntegerOption((option) =>
-				option
-					.setName('秒数')
-					.setDescription('じゃんけんを行う時間を秒単位で指定します。(デフォルト: 10秒)')
-					.setMinValue(5)
-					.setMaxValue(60)
-			)
-	)
+const command: Command = {
+	command: new SlashCommandBuilder()
+		.setName('じゃんけん')
+		.setDescription('じゃんけんゲームを開始します。')
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('通常')
+				.setDescription('通常のじゃんけんゲームを開始します。')
+				.addIntegerOption((option) =>
+					option
+						.setName('秒数')
+						.setDescription('じゃんけんを行う時間を秒単位で指定します。(デフォルト: 10秒)')
+						.setMinValue(5)
+						.setMaxValue(60)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('チャンネル内')
+				.setDescription('同じVCにいるユーザーだけが参加できるじゃんけんを開始します。')
+				.addIntegerOption((option) =>
+					option
+						.setName('秒数')
+						.setDescription('じゃんけんを行う時間を秒単位で指定します。(デフォルト: 10秒)')
+						.setMinValue(5)
+						.setMaxValue(60)
+				)
+		),
 
-// コマンドが実行されたときの処理
-export const execute = async (interaction: ChatInputCommandInteraction) => {
-	const subcommand = interaction.options.getSubcommand() // サブコマンドを取得
-	const time = interaction.options.getInteger('秒数') ?? 10 // 秒数を取得、デフォルトは10秒
-	const timeInMs = time * 1000 // 秒をミリ秒に変換
+	execute: async (interaction) => {
+		const subcommand = interaction.options.getSubcommand() // サブコマンドを取得
+		const time = interaction.options.getInteger('秒数') ?? 10 // 秒数を取得、デフォルトは10秒
+		const timeInMs = time * 1000 // 秒をミリ秒に変換
 
-	if (subcommand === 'normal') {
-		// 通常のじゃんけんを開始
-		await startJanken(interaction, timeInMs)
-	} else if (subcommand === 'vc') {
-		// VC限定のじゃんけんを開始
-		const member = interaction.member as GuildMember
-		const voiceChannel = member.voice.channel // メンバーのボイスチャンネルを取得
+		if (subcommand === 'normal') {
+			// 通常のじゃんけんを開始
+			await startJanken(interaction, timeInMs)
+		} else if (subcommand === 'vc') {
+			// VC限定のじゃんけんを開始
+			const member = interaction.member as GuildMember
+			const voiceChannel = member.voice.channel // メンバーのボイスチャンネルを取得
 
-		// ボイスチャンネルが取得できなかった場合
-		if (!voiceChannel) {
-			// エラーメッセージを返信
-			return await sendErrorReply(
-				interaction,
-				'ボイスチャンネルに参加してからコマンドを実行してください。'
-			)
+			// ボイスチャンネルが取得できなかった場合
+			if (!voiceChannel) {
+				// エラーメッセージを返信
+				return await sendErrorReply(
+					interaction,
+					'ボイスチャンネルに参加してからコマンドを実行してください。'
+				)
+			}
+
+			const membersInVc = voiceChannel.members // ボイスチャンネル内のメンバーを取得
+
+			if (membersInVc.size === 0) {
+				return await sendErrorReply(interaction, '指定されたボイスチャンネルには誰もいません。')
+			}
+
+			// VCにいるメンバーのIDを収集
+			const allowedUserIds = membersInVc.map((member) => member.id)
+			await startJanken(interaction, timeInMs, allowedUserIds) // VC限定のじゃんけんを開始
 		}
-
-		const membersInVc = voiceChannel.members // ボイスチャンネル内のメンバーを取得
-
-		if (membersInVc.size === 0) {
-			return await sendErrorReply(interaction, '指定されたボイスチャンネルには誰もいません。')
-		}
-
-		// VCにいるメンバーのIDを収集
-		const allowedUserIds = membersInVc.map((member) => member.id)
-		await startJanken(interaction, timeInMs, allowedUserIds) // VC限定のじゃんけんを開始
-	}
+	},
+	cooldown: 10,
 }
-
 // じゃんけんの開始処理
 const startJanken = async (
 	interaction: ChatInputCommandInteraction,
@@ -125,7 +127,7 @@ const createInitialEmbed = (time: number, membersInVc?: string[]) => {
 	return new EmbedBuilder()
 		.setTitle('🫰🏻じゃんけん！')
 		.setDescription(description)
-		.setColor(0x00ae86)
+		.setColor(config.colors.success)
 }
 
 // 選択肢を収集
@@ -276,3 +278,5 @@ interface Outcomes {
 	winners: string[]
 	draw: boolean
 }
+
+export default command
