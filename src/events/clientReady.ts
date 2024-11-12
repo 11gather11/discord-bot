@@ -6,8 +6,8 @@ import type { BotEvent } from '@/types/client'
 import { updateMemberCounts } from '@/utils/memberCounts'
 import { type Client, Events } from 'discord.js'
 
-const { YOUTUBE_CHANNEL_ID, DISCORD_GUILD_ID, DISCORD_LOG_CHANNEL_ID } = process.env
-if (!(YOUTUBE_CHANNEL_ID && DISCORD_GUILD_ID && DISCORD_LOG_CHANNEL_ID)) {
+const { YOUTUBE_CHANNEL_ID } = process.env
+if (!YOUTUBE_CHANNEL_ID) {
 	throw new Error('環境変数が設定されていません')
 }
 

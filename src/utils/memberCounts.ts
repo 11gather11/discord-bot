@@ -1,4 +1,4 @@
-import { logger } from '@/helpers/Logger'
+import { logger } from '@/helpers/logger'
 import type { Client } from 'discord.js'
 
 // 環境変数

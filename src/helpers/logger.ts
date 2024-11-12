@@ -81,7 +81,7 @@ const formatMessage = (args: unknown[]): string => {
 }
 
 // Discord の Webhook にメッセージを送信する関数
-const sendWebhook = (args: unknown[], level: LogLevel) => {
+const sendWebhook = async (args: unknown[], level: LogLevel) => {
 	if (!webhookLogger) {
 		return
 	}
@@ -97,8 +97,11 @@ const sendWebhook = (args: unknown[], level: LogLevel) => {
 		username: 'Logs',
 		content: level === 'error' ? `@everyone ${content}` : content,
 	}
-
-	webhookLogger.send(webhookMessage)
+	try {
+		await webhookLogger.send(webhookMessage)
+	} catch (error) {
+		logger.error('Webhook 送信に失敗しました:', (error as Error).message)
+	}
 }
 
 // winston のカスタムログレベルを定義
