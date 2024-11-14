@@ -135,7 +135,7 @@ const createFileTransport = (level: LogLevel) => {
 		level,
 		format: winston.format.combine(
 			filterOnly(level), // 特定のレベルのみを含むようにフィルタリング
-			winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // タイムスタンプを追加
+			winston.format.timestamp({ format: getFormattedDate() }), // タイムスタンプを追加
 			winston.format.printf(({ level, message, timestamp }) => {
 				return `[${timestamp}] [${level.toUpperCase()}]: ${message}`
 			})
@@ -151,7 +151,7 @@ const winstonLogger = winston.createLogger({
 	levels: customLevels.levels, // カスタムログレベルを適用
 	level: 'info',
 	format: winston.format.combine(
-		winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // タイムスタンプを追加
+		winston.format.timestamp({ format: getFormattedDate() }), // タイムスタンプを追加
 		winston.format.printf(({ level, message, timestamp }) => {
 			return `[${timestamp}] [${level.toUpperCase()}]: ${message}`
 		})
@@ -160,7 +160,7 @@ const winstonLogger = winston.createLogger({
 		// コンソールへのログ出力
 		new winston.transports.Console({
 			format: winston.format.combine(
-				winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // タイムスタンプを追加
+				winston.format.timestamp({ format: getFormattedDate() }), // タイムスタンプを追加
 				winston.format.printf(({ level, message, timestamp }) => {
 					// ログレベルをカラー化
 					const coloredLevel = colorizer.colorize(level, level.toUpperCase())
