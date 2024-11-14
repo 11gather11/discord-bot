@@ -33,49 +33,61 @@ export const startTwitchLiveNotification = async (
 		logger.error(tokenResult.error)
 		return
 	}
-	let accessToken = tokenResult.value
-	let notified = false
-	// ボット起動時に配信状況をチェック
+	const accessToken = tokenResult.value
+	const notified = false
+
+	// 配信状況の監視を開始
+	logger.success(`配信状況の監視を開始しました: ${userLogin}`)
+
+	// チェックを開始
+	await checkStreamingStatus(client, userLogin, accessToken, notified)
+}
+
+/**
+ * 配信状況をチェックして通知を送信
+ * @param {Client} client Discordクライアント
+ * @param {string} userLogin ユーザーログイン名
+ * @param {string} accessToken アクセストークン
+ * @param {boolean} notified 通知済みフラグ
+ * @returns {Promise<void>}
+ */
+const checkStreamingStatus = async (
+	client: Client,
+	userLogin: string,
+	accessToken: string,
+	notified: boolean
+): Promise<void> => {
+	// トークンチェックと更新
+	const AccessTokenValidResult = await isAccessTokenValid(accessToken)
+
+	const tokenResult =
+		AccessTokenValidResult.isOk() && !AccessTokenValidResult.value
+			? await fetchTwitchAccessToken()
+			: ok(accessToken)
+
+	if (tokenResult.isErr()) {
+		logger.error(tokenResult.error)
+		return
+	}
+	const currentAccessToken = tokenResult.value
+
 	const twitchStreamingNotificationResult = await handleTwitchStreamingNotification(
 		client,
 		userLogin,
-		accessToken,
+		currentAccessToken,
 		notified
 	)
 	if (twitchStreamingNotificationResult.isErr()) {
 		logger.error(twitchStreamingNotificationResult.error)
 		return
 	}
-	notified = twitchStreamingNotificationResult.value
+	const newNotified = twitchStreamingNotificationResult.value
 
-	// 60秒ごとにチェック
+	// 一定時間後に再度チェック
 	const timer = 1000 * 60
-	const interval = setInterval(async () => {
-		// トークンチェックと更新
-		const AccessTokenValidResult = await isAccessTokenValid(accessToken)
-		if (AccessTokenValidResult.isOk() && !AccessTokenValidResult.value) {
-			const tokenCheckResult = await fetchTwitchAccessToken()
-			if (tokenCheckResult.isErr()) {
-				logger.error(tokenCheckResult.error)
-				return clearInterval(interval)
-			}
-			accessToken = tokenCheckResult.value
-		}
-		const twitchStreamingNotificationResult = await handleTwitchStreamingNotification(
-			client,
-			userLogin,
-			accessToken,
-			notified
-		)
-		if (twitchStreamingNotificationResult.isErr()) {
-			logger.error(twitchStreamingNotificationResult.error)
-			return clearInterval(interval)
-		}
-		notified = twitchStreamingNotificationResult.value
+	setTimeout(() => {
+		checkStreamingStatus(client, userLogin, currentAccessToken, newNotified)
 	}, timer)
-
-	// 配信状況の監視を開始
-	logger.success(`配信状況の監視を開始しました: ${userLogin}`)
 }
 
 /**

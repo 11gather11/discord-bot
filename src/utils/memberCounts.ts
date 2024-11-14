@@ -40,22 +40,23 @@ export const updateMemberCounts = async (client: Client) => {
 	try {
 		// ボット起動時にメンバー数を更新
 		await memberCounts(client)
-		logger.success('メンバー数更新の監視を開始します')
 
-		// 1時間ごとにメンバー数を更新
-		setInterval(
-			async () => {
-				try {
-					await memberCounts(client)
-				} catch (error) {
-					// 定期更新中のエラーをキャッチしてログに出力
-					logger.warn('定期メンバー数更新中にエラーが発生しました:', (error as Error).message)
-				}
-			},
-			1000 * 60 * 10 // 10分ごとに更新
-		)
+		// メンバー数の更新を監視
+		checkForMemberCounts(client)
+
+		logger.success('メンバー数更新の監視を開始します')
 	} catch (error) {
 		// 初期更新時のエラーをキャッチしてログに出力
 		logger.error('初期メンバー数更新に失敗しました:', (error as Error).message)
 	}
+}
+
+const checkForMemberCounts = (client: Client) => {
+	const timer = 1000 * 60 * 10
+
+	setTimeout(async () => {
+		await memberCounts(client)
+	}, timer)
+
+	checkForMemberCounts(client)
 }

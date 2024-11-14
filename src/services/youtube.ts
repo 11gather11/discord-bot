@@ -33,25 +33,37 @@ export const startYouTubeVideoNotification = async (
 		logger.error(lastVideoIdResult.error)
 		return
 	}
-	let lastVideoId = lastVideoIdResult.value
+	const lastVideoId = lastVideoIdResult.value
 
+	// 最新動画IDを元に新しい動画をチェック
+	checkForNewVideos(client, uploadsPlaylistId.value, lastVideoId)
+
+	// 動画投稿の監視を開始
+	logger.success(`YouTube動画投稿の監視を開始しました: ${channelId}`)
+}
+
+/**
+ * 新しい動画をチェックして通知を送信
+ * @param {Client} client Discordクライアント
+ * @param {string} uploadsPlaylistId アップロードプレイリストID
+ * @param {string} lastVideoId 最新動画ID
+ * @returns {void}
+ */
+const checkForNewVideos = (client: Client, uploadsPlaylistId: string, lastVideoId: string) => {
 	// 20分ごとにチェック
 	const timer = 1000 * 60 * 20
-	const interval = setInterval(async () => {
+	setTimeout(async () => {
 		const youTubeVideoNotificationResult = await handleYouTubeVideoNotification(
 			client,
-			uploadsPlaylistId.value,
+			uploadsPlaylistId,
 			lastVideoId
 		)
 		if (youTubeVideoNotificationResult.isErr()) {
 			logger.error(youTubeVideoNotificationResult.error)
-			return clearInterval(interval)
+			return
 		}
-		lastVideoId = youTubeVideoNotificationResult.value
+		checkForNewVideos(client, uploadsPlaylistId, youTubeVideoNotificationResult.value)
 	}, timer)
-
-	// 動画投稿の監視を開始
-	logger.success(`YouTube動画投稿の監視を開始しました: ${channelId}`)
 }
 
 /**
