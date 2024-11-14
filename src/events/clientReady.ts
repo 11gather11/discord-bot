@@ -1,9 +1,9 @@
 import { monitorExistingChannels } from '@/events/voiceStateUpdate'
 import { logger } from '@/helpers/logger'
+import { updateMemberCounts } from '@/services/memberCounts'
 import { startTwitchLiveNotification } from '@/services/twitch'
 import { startYouTubeVideoNotification } from '@/services/youtube'
 import type { BotEvent } from '@/types/client'
-import { updateMemberCounts } from '@/utils/memberCounts'
 import { type Client, Events } from 'discord.js'
 
 const { YOUTUBE_CHANNEL_ID } = process.env
