@@ -56,7 +56,7 @@ const checkForMemberCounts = (client: Client) => {
 
 	setTimeout(async () => {
 		await memberCounts(client)
-	}, timer)
 
-	checkForMemberCounts(client)
+		checkForMemberCounts(client)
+	}, timer)
 }
