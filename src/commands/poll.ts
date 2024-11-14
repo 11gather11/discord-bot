@@ -15,7 +15,7 @@ const command: Command = {
 		.setName('投票')
 		.setDescription('投票を作成します')
 		.addStringOption((option) =>
-			option.setName('question').setDescription('投票の質問を入力してください').setRequired(true)
+			option.setName('質問').setDescription('投票の質問を入力してください').setRequired(true)
 		)
 		.addStringOption((option) =>
 			option
@@ -34,9 +34,9 @@ const command: Command = {
 
 	execute: async (interaction) => {
 		// 質問と選択肢を取得
-		const question = interaction.options.getString('question')
-		const options = interaction.options.getString('options')?.split(',') ?? []
-		const totalTime = interaction.options.getInteger('time') ?? 60
+		const question = interaction.options.getString('質問')
+		const options = interaction.options.getString('選択肢')?.split(',') ?? []
+		const totalTime = interaction.options.getInteger('時間') ?? 60
 
 		if (options.length < 2 || options.length > 10) {
 			return await sendErrorReply(interaction, '選択肢は2つ以上10以下で指定してください。')

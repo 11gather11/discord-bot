@@ -48,10 +48,10 @@ const command: Command = {
 		const time = interaction.options.getInteger('秒数') ?? 10 // 秒数を取得、デフォルトは10秒
 		const timeInMs = time * 1000 // 秒をミリ秒に変換
 
-		if (subcommand === 'normal') {
+		if (subcommand === '通常') {
 			// 通常のじゃんけんを開始
 			await startJanken(interaction, timeInMs)
-		} else if (subcommand === 'vc') {
+		} else if (subcommand === 'チャンネル内') {
 			// VC限定のじゃんけんを開始
 			const member = interaction.member as GuildMember
 			const voiceChannel = member.voice.channel // メンバーのボイスチャンネルを取得
@@ -125,7 +125,7 @@ const createInitialEmbed = (time: number, membersInVc?: string[]) => {
 		: `選んでください: (残り時間: ${time}秒)`
 
 	return new EmbedBuilder()
-		.setTitle('🫰🏻じゃんけん！')
+		.setTitle('🫰🏻 じゃんけん！')
 		.setDescription(description)
 		.setColor(config.colors.success)
 }

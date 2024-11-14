@@ -84,7 +84,6 @@ const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheTy
 const handleAutocomplete = (interaction: AutocompleteInteraction<CacheType>) => {
 	const command = interaction.client.commands.get(interaction.commandName)
 	if (!command) {
-		logger.error(`No command matching ${interaction.commandName} was found.`)
 		return
 	}
 	try {
@@ -101,7 +100,6 @@ const handleAutocomplete = (interaction: AutocompleteInteraction<CacheType>) => 
 const handleModalSubmit = (interaction: ModalSubmitInteraction<CacheType>) => {
 	const command = interaction.client.commands.get(interaction.customId)
 	if (!command) {
-		logger.error(`No command matching ${interaction.customId} was found.`)
 		return
 	}
 	try {
@@ -117,7 +115,6 @@ const handleModalSubmit = (interaction: ModalSubmitInteraction<CacheType>) => {
 const handleButton = (interaction: ButtonInteraction<CacheType>) => {
 	const command = interaction.client.commands.get(interaction.customId)
 	if (!command) {
-		logger.error(`No command matching ${interaction.customId} was found.`)
 		return
 	}
 	try {
