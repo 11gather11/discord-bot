@@ -51,6 +51,10 @@ export const updateMemberCounts = async (client: Client) => {
 	}
 }
 
+/**
+ * メンバー数を定期的に更新する関数
+ * @param client
+ */
 const checkForMemberCounts = (client: Client) => {
 	const timer = 1000 * 60 * 10
 
