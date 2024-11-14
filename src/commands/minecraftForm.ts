@@ -37,7 +37,7 @@ const command: Command = {
 		const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(button)
 
 		const embed = new EmbedBuilder()
-			.setTitle('🕋 Minecraftサーバー参加フォーム')
+			.setTitle(`${config.icons.minecraft} Minecraftサーバー参加フォーム`)
 			.setDescription('Minecraftサーバーに参加するには、以下のボタンをクリックしてください。')
 			.setColor(config.colors.success)
 
@@ -51,7 +51,7 @@ const command: Command = {
 		// フォームの作成
 		const form = new ModalBuilder()
 			.setCustomId('マインクラフト参加フォーム')
-			.setTitle('🕋 マインクラフト参加フォーム')
+			.setTitle(`${config.icons.minecraft} マインクラフト参加フォーム`)
 
 		// ユーザー名の入力フィールドを作成
 		const usernameInput = new TextInputBuilder()
@@ -106,7 +106,7 @@ const command: Command = {
 		await channel.send({ embeds: [embed] })
 
 		const replyEmbed = new EmbedBuilder()
-			.setTitle('🕋 マインクラフト参加フォーム')
+			.setTitle(`${config.icons.minecraft} マインクラフト参加フォーム`)
 			.setDescription('フォームの送信が完了しました。')
 			.setColor(config.colors.success)
 

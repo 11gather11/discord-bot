@@ -59,7 +59,7 @@ const command: Command = {
 
 		// 埋め込みメッセージの作成
 		const embed = new EmbedBuilder()
-			.setTitle('🌓 チーム分けの結果')
+			.setTitle(`${config.icons.team} チーム分けの結果`)
 			.setColor(config.colors.success) // 緑色
 			.setDescription('以下のチームに分けられました:')
 

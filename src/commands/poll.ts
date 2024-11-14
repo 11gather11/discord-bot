@@ -59,7 +59,7 @@ const command: Command = {
 
 		// 埋め込みメッセージを作成
 		const embed = new EmbedBuilder()
-			.setTitle('📊 投票')
+			.setTitle(`${config.icons.poll} 投票`)
 			.setDescription(question)
 			.setColor(config.colors.success)
 			.setFooter({ text: `残り時間: ${formatTime(timeRemaining)}` })
@@ -149,7 +149,7 @@ const command: Command = {
 			const totalVotes = votes.reduce((acc, curr) => acc + curr, 0)
 
 			const resultsEmbed = new EmbedBuilder()
-				.setTitle('📊 投票結果')
+				.setTitle(`${config.icons.poll} 投票結果`)
 				.setDescription(question)
 				.setColor(config.colors.success)
 

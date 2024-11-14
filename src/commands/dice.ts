@@ -48,7 +48,7 @@ const command: Command = {
 
 		// ダイス結果を埋め込みメッセージとして表示
 		const resultEmbed = new EmbedBuilder()
-			.setTitle('🎲 ダイスロール結果')
+			.setTitle(`${config.icons.dice} ダイスロール結果`)
 			.setDescription(result.message)
 			.setColor(config.colors.success) // 緑色
 

@@ -83,7 +83,7 @@ const renameFreeChannel = async (interaction: ChatInputCommandInteraction) => {
 	await voiceChannel.setName(`🔊${name}`)
 	// 返信
 	const embed = new EmbedBuilder()
-		.setTitle('🗽 フリーボイスチャンネルの名前変更')
+		.setTitle(`${config.icons.freeVoice} フリーボイスチャンネルの名前変更`)
 		.setDescription(`フリーボイスチャンネルの名前を変更しました: ${name}`)
 		.setColor(config.colors.success) // 緑色
 	await interaction.reply({
@@ -117,7 +117,7 @@ const setLimit = async (interaction: ChatInputCommandInteraction) => {
 	await voiceChannel.setUserLimit(limit)
 	// 返信
 	const embed = new EmbedBuilder()
-		.setTitle('🗽 フリーボイスチャンネルの人数制限設定')
+		.setTitle(`${config.icons.freeVoice} フリーボイスチャンネルの人数制限設定`)
 		.setDescription(`フリーボイスチャンネルの人数制限を設定しました: ${limit}`)
 		.setColor(config.colors.success) // 緑色
 	await interaction.reply({

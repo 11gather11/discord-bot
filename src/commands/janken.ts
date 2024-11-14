@@ -125,7 +125,7 @@ const createInitialEmbed = (time: number, membersInVc?: string[]) => {
 		: `選んでください: (残り時間: ${time}秒)`
 
 	return new EmbedBuilder()
-		.setTitle('🫰🏻 じゃんけん！')
+		.setTitle(`${config.icons.janken} じゃんけん！`)
 		.setDescription(description)
 		.setColor(config.colors.success)
 }

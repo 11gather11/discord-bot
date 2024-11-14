@@ -4,4 +4,12 @@ export const config = {
 		error: 0xcc0000,
 		warn: 0xf1c232,
 	},
+	icons: {
+		janken: '🫰🏻',
+		minecraft: '🕋',
+		dice: '🎲',
+		freeVoice: '🗽',
+		poll: '📊',
+		team: '🌓',
+	},
 }
