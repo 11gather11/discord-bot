@@ -51,7 +51,7 @@ const command: Command = {
 		// フォームの作成
 		const form = new ModalBuilder()
 			.setCustomId('マインクラフト参加フォーム')
-			.setTitle('🕋マインクラフト参加フォーム')
+			.setTitle('🕋 マインクラフト参加フォーム')
 
 		// ユーザー名の入力フィールドを作成
 		const usernameInput = new TextInputBuilder()
@@ -60,11 +60,19 @@ const command: Command = {
 			.setStyle(TextInputStyle.Short)
 			.setRequired(true)
 
+		//意気込みの入力フィールドを作成
+		const otherInput = new TextInputBuilder()
+			.setCustomId('other')
+			.setLabel('意気込みなどがあれば入力してください')
+			.setStyle(TextInputStyle.Paragraph)
+			.setRequired(false)
+
 		// フォームに入力フィールドを追加
 		const usernameRow = new ActionRowBuilder<TextInputBuilder>().addComponents(usernameInput)
+		const otherRow = new ActionRowBuilder<TextInputBuilder>().addComponents(otherInput)
 
 		// フォームに行を追加
-		form.addComponents(usernameRow)
+		form.addComponents(usernameRow, otherRow)
 
 		// フォームを表示
 		await interaction.showModal(form)
@@ -72,6 +80,7 @@ const command: Command = {
 	modal: async (interaction) => {
 		// フォームから送信されたデータを取得
 		const minecraftUsername = interaction.fields.getTextInputValue('minecraftUsername')
+		const other = interaction.fields.getTextInputValue('other')
 
 		// フォームの送信者を取得
 		const guild = interaction.guild
@@ -90,14 +99,14 @@ const command: Command = {
 			.setTitle(
 				`送信者ID:**${interaction.user.username}** 表示名:**${interaction.user.displayName}**`
 			)
-			.setDescription(`Minecraftのユーザー名: **${minecraftUsername}**`)
+			.setDescription(`Minecraftのユーザー名: **${minecraftUsername}** \n 意気込み: ${other}`)
 			.setColor(config.colors.success)
 
 		// チャンネルに埋め込みメッセージとして送信
 		await channel.send({ embeds: [embed] })
 
 		const replyEmbed = new EmbedBuilder()
-			.setTitle('🕋マインクラフト参加フォーム')
+			.setTitle('🕋 マインクラフト参加フォーム')
 			.setDescription('フォームの送信が完了しました。')
 			.setColor(config.colors.success)
 
