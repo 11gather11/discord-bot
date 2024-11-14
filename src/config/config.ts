@@ -1,7 +1,7 @@
 export const config = {
 	colors: {
-		success: 0x00ae86,
-		error: 0xff0000,
-		warn: 0xffd700,
+		success: 0x6aa84f,
+		error: 0xcc0000,
+		warn: 0xf1c232,
 	},
 }

@@ -1,3 +1,4 @@
+import { config } from '@/config/config'
 import { logger } from '@/helpers/logger'
 import type { Command } from '@/types/client'
 import {
@@ -36,9 +37,9 @@ const command: Command = {
 		const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(button)
 
 		const embed = new EmbedBuilder()
-			.setTitle('🕋Minecraftサーバー参加フォーム')
+			.setTitle('🕋 Minecraftサーバー参加フォーム')
 			.setDescription('Minecraftサーバーに参加するには、以下のボタンをクリックしてください。')
-			.setColor(0x00ae86)
+			.setColor(config.colors.success)
 
 		// ボタンを含むメッセージを送信
 		await interaction.reply({
@@ -90,7 +91,7 @@ const command: Command = {
 				`送信者ID:**${interaction.user.username}** 表示名:**${interaction.user.displayName}**`
 			)
 			.setDescription(`Minecraftのユーザー名: **${minecraftUsername}**`)
-			.setColor(0x00ae86)
+			.setColor(config.colors.success)
 
 		// チャンネルに埋め込みメッセージとして送信
 		await channel.send({ embeds: [embed] })
@@ -98,7 +99,7 @@ const command: Command = {
 		const replyEmbed = new EmbedBuilder()
 			.setTitle('🕋マインクラフト参加フォーム')
 			.setDescription('フォームの送信が完了しました。')
-			.setColor(0x00ae86)
+			.setColor(config.colors.success)
 
 		await interaction.reply({
 			embeds: [replyEmbed],

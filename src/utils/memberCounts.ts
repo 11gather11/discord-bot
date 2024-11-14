@@ -27,7 +27,7 @@ const memberCounts = async (client: Client) => {
 		}
 
 		// チャンネル名を更新
-		const newChannelName = `👥メンバー数:${memberCount}`
+		const newChannelName = `👥 メンバー数:${memberCount}`
 		await memberCountChannel.setName(newChannelName)
 	} catch (error) {
 		// エラー発生時に例外をスローしつつ、エラーログを出力

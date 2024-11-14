@@ -28,7 +28,7 @@ const createNewVoiceChannel = async (newState: VoiceState) => {
 
 	const guild = newState.guild
 	const newVoiceChannel = await guild.channels.create({
-		name: `🔊${newState.member?.user.displayName}のVC`,
+		name: `🔊 ${newState.member?.user.displayName}のVC`,
 		type: ChannelType.GuildVoice,
 		parent: DISCORD_FREE_VOICE_CATEGORY_ID,
 	})

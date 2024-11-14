@@ -1,11 +1,12 @@
+import { config } from '@/config/config'
 import { EmbedBuilder, type Interaction } from 'discord.js'
 
 // エラーメッセージを送信する関数
 export const sendErrorReply = async (interaction: Interaction, message: string) => {
 	const errorEmbed = new EmbedBuilder()
-		.setTitle('⛔️エラー')
+		.setTitle('⛔️ エラー')
 		.setDescription(message)
-		.setColor(0xff0000)
+		.setColor(config.colors.error) // 赤色
 
 	if (!interaction.isCommand()) {
 		return
