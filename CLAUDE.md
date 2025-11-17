@@ -80,6 +80,19 @@ export const fetchLatestVideo = async (uploadsPlaylistId: string): Promise<Playl
 export const fetchLatestVideo = async (uploadsPlaylistId: string): Promise<PlaylistItems> => { /* ... */ }
 ```
 
+#### 7. コメントの言語
+コードコメントは英語で記述する
+
+```typescript
+// ❌ Bad
+// アップロードプレイリストIDを取得
+const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)
+
+// ✅ Good
+// Fetch uploads playlist ID
+const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)
+```
+
 ### 参考実装
 - `src/lib/logger.ts` - 基本パターン
 - `src/lib/youtube.ts` - API統合の例
@@ -177,6 +190,19 @@ export const notifyVideo = async (client: Client, videoId: string): Promise<void
 
 // ✅ Good
 export const notifyVideo = async (client: Client, videoId: string): Promise<void> => { /* ... */ }
+```
+
+#### 8. コメントの言語
+コードコメントは英語で記述する
+
+```typescript
+// ❌ Bad
+// Twitchチャンネルの監視を開始
+const twitchPromises = config.twitch.channels.map((channel) => startLiveNotification(client, channel))
+
+// ✅ Good
+// Start monitoring Twitch channels
+const twitchPromises = config.twitch.channels.map((channel) => startLiveNotification(client, channel))
 ```
 
 ### 参考実装
