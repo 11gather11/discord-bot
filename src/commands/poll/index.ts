@@ -3,7 +3,7 @@ import { config } from '@/config/config'
 import type { Command } from '@/types/command'
 import { sendErrorReply } from '@/utils/sendErrorReply'
 
-const command: Command = {
+export default {
 	// コマンドのデータ
 	command: new SlashCommandBuilder()
 		.setName('poll')
@@ -164,6 +164,4 @@ const command: Command = {
 			})
 		})
 	},
-}
-
-export default command
+} satisfies Command

@@ -14,7 +14,7 @@ import { config } from '@/config/config'
 import type { Command } from '@/types/command'
 import { sendErrorReply } from '@/utils/sendErrorReply'
 
-const command: Command = {
+export default {
 	command: new SlashCommandBuilder()
 		.setName('janken')
 		.setDescription('じゃんけんゲームを開始します。')
@@ -73,7 +73,7 @@ const command: Command = {
 			await startJanken(interaction, timeInMs, allowedUserIds) // VC限定のじゃんけんを開始
 		}
 	},
-}
+} satisfies Command
 // じゃんけんの開始処理
 const startJanken = async (interaction: ChatInputCommandInteraction, timeInMs: number, allowedUserIds?: string[]) => {
 	// VC参加者の情報を取得し保持する
@@ -255,5 +255,3 @@ interface Outcomes {
 	winners: string[]
 	draw: boolean
 }
-
-export default command

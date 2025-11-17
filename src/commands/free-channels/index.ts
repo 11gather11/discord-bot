@@ -10,7 +10,7 @@ if (!(DISCORD_FREE_VOICE_CHANNEL_ID && DISCORD_FREE_VOICE_CATEGORY_ID)) {
 	throw new Error('環境変数が設定されていません')
 }
 
-const command: Command = {
+export default {
 	command: new SlashCommandBuilder()
 		.setName('free-channels')
 		.setDescription('フリーチャンネルの設定コマンドです。')
@@ -50,7 +50,7 @@ const command: Command = {
 			await setLimit(interaction)
 		}
 	},
-}
+} satisfies Command
 
 // フリーチャンネルの名前を変更する関数
 const renameFreeChannel = async (interaction: ChatInputCommandInteraction) => {
@@ -108,5 +108,3 @@ const setLimit = async (interaction: ChatInputCommandInteraction) => {
 		ephemeral: true,
 	})
 }
-
-export default command

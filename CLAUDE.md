@@ -205,6 +205,49 @@ const twitchPromises = config.twitch.channels.map((channel) => startLiveNotifica
 const twitchPromises = config.twitch.channels.map((channel) => startLiveNotification(client, channel))
 ```
 
+#### 9. オプショナルサービスの環境変数
+必須サービスとオプショナルサービスで環境変数の扱いを区別する
+
+**必須サービス（Twitch、YouTube等）**:
+- 環境変数なし → エラーを投げる
+- サービスが動作しないと全体が機能しない
+
+**オプショナルサービス（Twitter、MemberCounts等）**:
+- 環境変数なし → `null`を返してスキップ
+- サービスがなくても他の機能は動作する
+
+```typescript
+// ❌ Bad (オプショナルサービスでエラーを投げる)
+const getTwitterConfig = (): TwitterApi => {
+  const apiKey = import.meta.env.TWITTER_API_KEY
+  if (!apiKey) {
+    throw new Error('[Twitter] API_KEY is not set')
+  }
+  return new TwitterApi({ apiKey })
+}
+
+// ✅ Good (オプショナルサービスはnullを返す)
+const getTwitterConfig = (): TwitterApi | null => {
+  const apiKey = import.meta.env.TWITTER_API_KEY
+  if (!apiKey) {
+    return null
+  }
+  return new TwitterApi({ apiKey })
+}
+
+// 使用側でnullチェック
+export const tweet = async (text: string): Promise<void> => {
+  const client = getTwitterConfig()
+  if (!client) {
+    logger.warn('[Twitter] API credentials are not set, skipping tweet')
+    return
+  }
+  // ツイート処理
+}
+```
+
 ### 参考実装
-- `src/services/twitch.ts` - 配信通知サービスの例
-- `src/services/youtube.ts` - 動画通知サービスの例
+- `src/services/twitch.ts` - 配信通知サービスの例（必須）
+- `src/services/youtube.ts` - 動画通知サービスの例（必須）
+- `src/services/twitter.ts` - Twitter連携の例（オプショナル）
+- `src/services/memberCounts.ts` - メンバー数更新の例（オプショナル）

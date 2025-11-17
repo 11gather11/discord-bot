@@ -3,7 +3,7 @@ import { config } from '@/config/config'
 import type { Command } from '@/types/command'
 import { sendErrorReply } from '@/utils/sendErrorReply'
 
-const command: Command = {
+export default {
 	command: new SlashCommandBuilder()
 		.setName('team')
 		.setDescription('チーム分けを行います。')
@@ -76,6 +76,4 @@ const command: Command = {
 			embeds: [embed],
 		})
 	},
-}
-
-export default command
+} satisfies Command
