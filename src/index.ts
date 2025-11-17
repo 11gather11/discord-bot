@@ -1,14 +1,7 @@
 import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Command } from '@/types/client'
 import { Client, Collection, GatewayIntentBits } from 'discord.js'
-
-// 環境変数
-const { DISCORD_TOKEN } = process.env
-
-if (!DISCORD_TOKEN) {
-	throw new Error('環境変数が設定されていません')
-}
+import type { Command } from '@/types/command'
 
 // 新しいClientインスタンスを作成
 const client = new Client({
@@ -23,7 +16,6 @@ const client = new Client({
 
 // コマンドを格納するコレクション
 client.commands = new Collection<string, Command>()
-client.cooldowns = new Collection<string, number>()
 
 const handlersDir = join(__dirname, './handlers')
 for (const file of readdirSync(handlersDir)) {
@@ -34,4 +26,4 @@ for (const file of readdirSync(handlersDir)) {
 	handler(client)
 }
 
-client.login(DISCORD_TOKEN)
+client.login(import.meta.env.DISCORD_TOKEN)

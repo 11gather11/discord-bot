@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 const envSchema = z.object({
+	DISCORD_TOKEN: z.string(),
 	DISCORD_LOG_WEBHOOK_URL: z.url().optional(),
 })
 
