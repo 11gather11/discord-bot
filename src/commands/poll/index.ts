@@ -6,7 +6,7 @@ import { sendErrorReply } from '@/utils/sendErrorReply'
 const command: Command = {
 	// コマンドのデータ
 	command: new SlashCommandBuilder()
-		.setName('投票')
+		.setName('poll')
 		.setDescription('投票を作成します')
 		.addStringOption((option) =>
 			option.setName('質問').setDescription('投票の質問を入力してください').setRequired(true),

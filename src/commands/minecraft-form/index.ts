@@ -19,10 +19,10 @@ if (!DISCORD_MINECRAFT_CHANNEL_ID) {
 	throw new Error('環境変数が設定されていません')
 }
 
-const command: Command = {
+export default {
 	// コマンドのデータ
 	command: new SlashCommandBuilder()
-		.setName('マインクラフト参加フォーム')
+		.setName('minecraft-form')
 		.setDescription('Minecraftの参加フォームを作成します')
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator), // 管理者のみ実行可能
 
@@ -113,6 +113,4 @@ const command: Command = {
 			ephemeral: true, // メッセージを送信者にのみ表示
 		})
 	},
-}
-
-export default command
+} satisfies Command

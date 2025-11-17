@@ -16,7 +16,7 @@ import { sendErrorReply } from '@/utils/sendErrorReply'
 
 const command: Command = {
 	command: new SlashCommandBuilder()
-		.setName('じゃんけん')
+		.setName('janken')
 		.setDescription('じゃんけんゲームを開始します。')
 		.addSubcommand((subcommand) =>
 			subcommand

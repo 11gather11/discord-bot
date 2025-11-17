@@ -5,7 +5,7 @@ import { sendErrorReply } from '@/utils/sendErrorReply'
 
 const command: Command = {
 	command: new SlashCommandBuilder()
-		.setName('チーム分け')
+		.setName('team')
 		.setDescription('チーム分けを行います。')
 		.addIntegerOption((option) =>
 			option

@@ -12,7 +12,7 @@ if (!(DISCORD_FREE_VOICE_CHANNEL_ID && DISCORD_FREE_VOICE_CATEGORY_ID)) {
 
 const command: Command = {
 	command: new SlashCommandBuilder()
-		.setName('フリーチャンネル')
+		.setName('free-channels')
 		.setDescription('フリーチャンネルの設定コマンドです。')
 		.addSubcommand((subcommand) =>
 			subcommand

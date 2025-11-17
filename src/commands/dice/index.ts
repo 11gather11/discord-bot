@@ -5,7 +5,7 @@ import { sendErrorReply } from '@/utils/sendErrorReply'
 
 export default {
 	command: new SlashCommandBuilder()
-		.setName('ダイス')
+		.setName('dice')
 		.setDescription('ダイスを振るコマンドです。')
 		.addSubcommand((subcommand) =>
 			subcommand
