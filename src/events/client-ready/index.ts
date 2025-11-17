@@ -1,22 +1,22 @@
-import { monitorExistingChannels } from '@/events/voiceStateUpdate'
-import { logger } from '@/helpers/logger'
+import { type Client, Events } from 'discord.js'
+import { monitorExistingChannels } from '@/events/voice-state-update'
+import { logger } from '@/lib/logger'
 import { updateMemberCounts } from '@/services/memberCounts'
 import { startTwitchLiveNotification } from '@/services/twitch'
 import { startYouTubeVideoNotification } from '@/services/youtube'
-import type { BotEvent } from '@/types/client'
-import { type Client, Events } from 'discord.js'
+import type { Event } from '@/types/event'
 
 const { YOUTUBE_CHANNEL_ID } = process.env
 if (!YOUTUBE_CHANNEL_ID) {
 	throw new Error('環境変数が設定されていません')
 }
 
-const event: BotEvent = {
+export default {
 	name: Events.ClientReady,
 	once: true,
 
 	execute: async (client: Client) => {
-		logger.success(`ログイン成功: ${client.user?.tag}`)
+		logger.info(`ログイン成功: ${client.user?.tag}`)
 		try {
 			updateMemberCounts(client)
 			monitorExistingChannels(client)
@@ -28,6 +28,4 @@ const event: BotEvent = {
 			logger.error(error)
 		}
 	},
-}
-
-export default event
+} satisfies Event<Events.ClientReady>

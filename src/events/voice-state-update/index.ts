@@ -1,6 +1,6 @@
-import { logger } from '@/helpers/logger'
-import type { BotEvent } from '@/types/client'
 import { ChannelType, type Client, Events, type VoiceChannel, type VoiceState } from 'discord.js'
+import { logger } from '@/lib/logger'
+import type { Event } from '@/types/event'
 
 const { DISCORD_FREE_VOICE_CHANNEL_ID, DISCORD_FREE_VOICE_CATEGORY_ID } = process.env
 
@@ -8,9 +8,10 @@ if (!(DISCORD_FREE_VOICE_CHANNEL_ID && DISCORD_FREE_VOICE_CATEGORY_ID)) {
 	throw new Error('環境変数が設定されていません')
 }
 
-const event: BotEvent = {
+export default {
 	// イベント名をVoiceStateUpdateに設定
 	name: Events.VoiceStateUpdate,
+	once: false,
 
 	// イベントが発生した際に実行される関数
 	execute: (oldState: VoiceState, newState: VoiceState) => {
@@ -19,7 +20,7 @@ const event: BotEvent = {
 		// 空のチャンネルの削除
 		deleteEmptyChannel(oldState)
 	},
-}
+} satisfies Event<Events.VoiceStateUpdate>
 const createNewVoiceChannel = async (newState: VoiceState) => {
 	// フリー作成チャンネル以外の場合は処理を終了
 	if (newState.channelId !== DISCORD_FREE_VOICE_CHANNEL_ID) {
@@ -42,10 +43,7 @@ const deleteEmptyChannel = async (oldState: VoiceState) => {
 		return
 	}
 	// チャンネルがフリー作成チャンネルまたはフリーカテゴリー以外の場合は処理を終了
-	if (
-		channel.id === DISCORD_FREE_VOICE_CHANNEL_ID ||
-		channel.parentId !== DISCORD_FREE_VOICE_CATEGORY_ID
-	) {
+	if (channel.id === DISCORD_FREE_VOICE_CHANNEL_ID || channel.parentId !== DISCORD_FREE_VOICE_CATEGORY_ID) {
 		return
 	}
 	// チャンネルに誰もいない場合は削除
@@ -64,8 +62,7 @@ export const monitorExistingChannels = async (client: Client) => {
 	}
 	// カテゴリ内のボイスチャンネルをフィルタリング
 	const voiceChannels = categoryChannel.children.cache.filter(
-		(channel) =>
-			channel.type === ChannelType.GuildVoice && channel.id !== DISCORD_FREE_VOICE_CHANNEL_ID
+		(channel) => channel.type === ChannelType.GuildVoice && channel.id !== DISCORD_FREE_VOICE_CHANNEL_ID,
 	) as Map<string, VoiceChannel>
 
 	// 各ボイスチャンネルをチェック
@@ -74,7 +71,5 @@ export const monitorExistingChannels = async (client: Client) => {
 			await voiceChannel.delete()
 		}
 	}
-	logger.success(`フリーボイスチャンネルを再監視: ${voiceChannels.size}個`)
+	logger.info(`フリーボイスチャンネルを再監視: ${voiceChannels.size}個`)
 }
-
-export default event

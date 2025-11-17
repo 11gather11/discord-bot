@@ -13,7 +13,6 @@ const client = new Client({
 	],
 })
 
-// コマンドを格納するコレクション
 client.commands = await loadCommands()
 
 await loadEvents(client)

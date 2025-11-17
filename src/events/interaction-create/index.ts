@@ -1,20 +1,18 @@
-import { config } from '@/config/config'
-import { logger } from '@/helpers/logger'
-import type { BotEvent } from '@/types/client'
 import {
 	type AutocompleteInteraction,
 	type ButtonInteraction,
 	type CacheType,
 	type ChatInputCommandInteraction,
-	EmbedBuilder,
 	Events,
-	type Interaction,
 	type ModalSubmitInteraction,
 } from 'discord.js'
+import { logger } from '@/lib/logger'
+import type { Event } from '@/types/event'
 
-const event: BotEvent = {
+export default {
 	name: Events.InteractionCreate,
-	execute(interaction: Interaction) {
+	once: false,
+	execute(interaction) {
 		// 受け取ったインタラクションの種類に応じてハンドラを呼び出す
 		if (interaction.isChatInputCommand()) {
 			handleChatInputCommand(interaction)
@@ -26,48 +24,15 @@ const event: BotEvent = {
 			handleModalSubmit(interaction)
 		}
 	},
-}
+} satisfies Event<Events.InteractionCreate>
 
 // ChatInputCommand（スラッシュコマンド）の処理
 const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheType>) => {
 	const command = interaction.client.commands.get(interaction.commandName)
-	const cooldown = interaction.client.cooldowns.get(
-		`${interaction.commandName}-${interaction.user.id}`
-	)
 	if (!command) {
 		return
 	}
 
-	// クールダウンのチェック
-	if (command.cooldown && cooldown) {
-		if (Date.now() < cooldown) {
-			// クールダウン中の場合、ユーザーに待つように通知
-			const embed = new EmbedBuilder()
-				.setTitle('🌀 クールダウン')
-				.setDescription(
-					`あと${Math.floor((cooldown - Date.now()) / 1000)}秒待ってからこのコマンドを再度使用できます。`
-				)
-				.setColor(config.colors.warn)
-			interaction.reply({
-				embeds: [embed],
-				ephemeral: true,
-			})
-			setTimeout(() => interaction.deleteReply(), 5000)
-			return
-		}
-	}
-	// クールダウン設定
-	if (command.cooldown) {
-		interaction.client.cooldowns.set(
-			`${interaction.commandName}-${interaction.user.id}`,
-			Date.now() + command.cooldown * 1000
-		)
-		setTimeout(
-			() =>
-				interaction.client.cooldowns.delete(`${interaction.commandName}-${interaction.user.id}`),
-			command.cooldown * 1000
-		)
-	}
 	try {
 		// コマンドの実行
 		command.execute(interaction)
@@ -126,5 +91,3 @@ const handleButton = (interaction: ButtonInteraction<CacheType>) => {
 		logger.error(error)
 	}
 }
-
-export default event
