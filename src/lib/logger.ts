@@ -5,12 +5,12 @@ import winston from 'winston'
  * WebhookClient のインスタンスを作成（URL が存在し有効な場合のみ）
  */
 const createWebhookLogger = (): WebhookClient | null => {
-	if (!Bun.env.DISCORD_LOG_WEBHOOK_URL) {
+	if (!import.meta.env.DISCORD_LOG_WEBHOOK_URL) {
 		console.warn('DISCORD_LOG_WEBHOOK_URL が設定されていません')
 		return null
 	}
 	try {
-		return new WebhookClient({ url: Bun.env.DISCORD_LOG_WEBHOOK_URL })
+		return new WebhookClient({ url: import.meta.env.DISCORD_LOG_WEBHOOK_URL })
 	} catch (error) {
 		console.error('WebhookClient の作成に失敗しました:', (error as Error).message)
 		return null
