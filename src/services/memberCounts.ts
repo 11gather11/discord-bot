@@ -1,15 +1,16 @@
 import type { Client } from 'discord.js'
 import { logger } from '@/lib/logger'
 
-// 環境変数
-const { DISCORD_GUILD_ID, DISCORD_MEMBER_COUNT_CHANNEL_ID } = process.env
-
-if (!(DISCORD_GUILD_ID && DISCORD_MEMBER_COUNT_CHANNEL_ID)) {
-	throw new Error('環境変数が設定されていません')
-}
-
 // メンバー数を更新する関数
 const memberCounts = async (client: Client) => {
+	const { DISCORD_GUILD_ID, DISCORD_MEMBER_COUNT_CHANNEL_ID } = import.meta.env
+
+	if (!DISCORD_GUILD_ID || !DISCORD_MEMBER_COUNT_CHANNEL_ID) {
+		logger.warn(
+			'DISCORD_GUILD_IDまたはDISCORD_MEMBER_COUNT_CHANNEL_IDが設定されていません。メンバー数の更新をスキップします。',
+		)
+		return
+	}
 	try {
 		// サーバーを取得
 		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)

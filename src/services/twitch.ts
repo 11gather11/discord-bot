@@ -1,15 +1,8 @@
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'
-import { fetchStreamingStatus, fetchTwitchAccessToken, fetchTwitchGameInfo, isAccessTokenValid } from '@/api/twitchApi'
 import { logger } from '@/lib/logger'
+import { fetchStreamingStatus, fetchTwitchAccessToken, fetchTwitchGameInfo, isAccessTokenValid } from '@/lib/twitch'
 import { postTweet } from '@/services/twitter'
 import type { TwitchGame, TwitchStream } from '@/types/twitch'
-
-// 環境変数
-const { DISCORD_STREAMS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
-
-if (!(DISCORD_STREAMS_CHANNEL_ID && DISCORD_GUILD_ID)) {
-	throw new Error('環境変数が設定されていません')
-}
 
 /**
  * Twitchの配信通知を開始
@@ -113,6 +106,14 @@ const sendTwitchStreamingNotification = async (
 	streamingStatus: TwitchStream,
 	twitchGameInfo: TwitchGame | undefined,
 ): Promise<void> => {
+	const { DISCORD_GUILD_ID, DISCORD_STREAMS_CHANNEL_ID } = import.meta.env
+
+	if (!DISCORD_GUILD_ID || !DISCORD_STREAMS_CHANNEL_ID) {
+		logger.warn(
+			'DISCORD_GUILD_IDまたはDISCORD_STREAMS_CHANNEL_IDが設定されていません。Twitch配信通知の送信をスキップします。',
+		)
+		return
+	}
 	const { user_name: userName, title, viewer_count: viewerCount, started_at, thumbnail_url } = streamingStatus
 	const startedAt = new Date(started_at).toLocaleString('ja-JP')
 	const gameName = twitchGameInfo?.name || '不明'

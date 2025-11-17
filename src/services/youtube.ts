@@ -1,6 +1,6 @@
 import type { Client } from 'discord.js'
-import { fetchLatestYouTubeVideo, fetchUploadsPlaylistId } from '@/api/youtubeApi'
 import { logger } from '@/lib/logger'
+import { fetchLatestYouTubeVideo, fetchUploadsPlaylistId } from '@/lib/youtube'
 
 // 環境変数
 const { DISCORD_VIDEOS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env

@@ -2,7 +2,6 @@ import TwitterApi, { type ErrorV2 } from 'twitter-api-v2'
 import { logger } from '@/lib/logger'
 
 const { TWITTER_API_KEY, TWITTER_API_SECRET_KEY, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET } = process.env
-
 if (!(TWITTER_API_KEY && TWITTER_API_SECRET_KEY && TWITTER_ACCESS_TOKEN && TWITTER_ACCESS_TOKEN_SECRET)) {
 	throw new Error('環境変数が設定されていません')
 }
