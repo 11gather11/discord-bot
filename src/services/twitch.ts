@@ -1,7 +1,7 @@
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'
 import { logger } from '@/lib/logger'
 import { fetchAccessToken, fetchGameInfo, fetchStreamingStatus, isAccessTokenValid } from '@/lib/twitch'
-import { postTweet } from '@/services/twitter'
+import { tweet } from '@/services/twitter'
 import type { TwitchGame, TwitchStream } from '@/types/twitch'
 
 const CHECK_INTERVAL = 1000 * 60
@@ -78,7 +78,7 @@ const notifyStream = async (
 		const discordMessage = `@everyone ${stream.user_name}がTwitchで配信を開始しました!`
 		const tweetText = buildTweetText(userLogin, stream, gameName)
 
-		await Promise.all([sendToDiscord(client, guildId, channelId, embed, discordMessage), postTweet(tweetText)])
+		await Promise.all([sendToDiscord(client, guildId, channelId, embed, discordMessage), tweet(tweetText)])
 		logger.info(`[Twitch] ${userLogin} の配信開始を検知: ${stream.title}`)
 	} catch (error) {
 		logger.error('[Twitch] Failed to send stream notification:', error as Error)

@@ -1,24 +1,35 @@
 import TwitterApi, { type ErrorV2 } from 'twitter-api-v2'
 import { logger } from '@/lib/logger'
 
-const { TWITTER_API_KEY, TWITTER_API_SECRET_KEY, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET } = process.env
-if (!(TWITTER_API_KEY && TWITTER_API_SECRET_KEY && TWITTER_ACCESS_TOKEN && TWITTER_ACCESS_TOKEN_SECRET)) {
-	throw new Error('環境変数が設定されていません')
+const getTwitterConfig = (): TwitterApi | null => {
+	const appKey = import.meta.env.TWITTER_APP_KEY
+	const appSecret = import.meta.env.TWITTER_APP_SECRET
+	const accessToken = import.meta.env.TWITTER_ACCESS_TOKEN
+	const accessSecret = import.meta.env.TWITTER_ACCESS_SECRET
+
+	if (!(appKey && appSecret && accessToken && accessSecret)) {
+		return null
+	}
+
+	return new TwitterApi({
+		appKey,
+		appSecret,
+		accessToken,
+		accessSecret,
+	})
 }
 
-// Twitter APIクライアントを初期化
-const twitterClient = new TwitterApi({
-	appKey: TWITTER_API_KEY,
-	appSecret: TWITTER_API_SECRET_KEY,
-	accessToken: TWITTER_ACCESS_TOKEN,
-	accessSecret: TWITTER_ACCESS_TOKEN_SECRET,
-})
-
-export const postTweet = async (text: string): Promise<void> => {
-	try {
-		await twitterClient.v2.tweet(text)
-	} catch (error) {
-		logger.error('ツイートの投稿に失敗しました:', (error as ErrorV2).errors)
+export const tweet = async (text: string): Promise<void> => {
+	const client = getTwitterConfig()
+	if (!client) {
+		logger.warn('[Twitter] API credentials are not set, skipping tweet')
 		return
+	}
+
+	try {
+		await client.v2.tweet(text)
+		logger.info('[Twitter] Tweet posted successfully')
+	} catch (error) {
+		logger.error('[Twitter] Failed to post tweet:', (error as ErrorV2).errors)
 	}
 }
