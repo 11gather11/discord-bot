@@ -1,6 +1,3 @@
-import { config } from '@/config/config'
-import { logger } from '@/helpers/logger'
-import type { Command } from '@/types/client'
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -12,6 +9,9 @@ import {
 	TextInputBuilder,
 	TextInputStyle,
 } from 'discord.js'
+import { config } from '@/config/config'
+import { logger } from '@/lib/logger'
+import type { Command } from '@/types/command'
 
 const { DISCORD_MINECRAFT_CHANNEL_ID } = process.env
 
@@ -96,9 +96,7 @@ const command: Command = {
 		}
 
 		const embed = new EmbedBuilder()
-			.setTitle(
-				`送信者ID:**${interaction.user.username}** 表示名:**${interaction.user.displayName}**`
-			)
+			.setTitle(`送信者ID:**${interaction.user.username}** 表示名:**${interaction.user.displayName}**`)
 			.setDescription(`Minecraftのユーザー名: **${minecraftUsername}** \n 意気込み: ${other}`)
 			.setColor(config.colors.success)
 

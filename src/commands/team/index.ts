@@ -1,7 +1,7 @@
-import { config } from '@/config/config'
-import type { Command } from '@/types/client'
-import { sendErrorReply } from '@/utils/sendErrorReply'
 import { EmbedBuilder, type GuildMember, SlashCommandBuilder } from 'discord.js'
+import { config } from '@/config/config'
+import type { Command } from '@/types/command'
+import { sendErrorReply } from '@/utils/sendErrorReply'
 
 const command: Command = {
 	command: new SlashCommandBuilder()
@@ -13,7 +13,7 @@ const command: Command = {
 				.setDescription('チームの数を入力してください。')
 				.setRequired(true)
 				.setMinValue(2)
-				.setMaxValue(10)
+				.setMaxValue(10),
 		),
 
 	execute: async (interaction) => {
@@ -25,10 +25,7 @@ const command: Command = {
 
 		// ボイスチャンネルが取得できなかった場合
 		if (!voiceChannel) {
-			return await sendErrorReply(
-				interaction,
-				'ボイスチャンネルに参加してからコマンドを実行してください。'
-			)
+			return await sendErrorReply(interaction, 'ボイスチャンネルに参加してからコマンドを実行してください。')
 		}
 
 		// チーム数を取得（必須オプションなのでnullチェック不要）
@@ -41,20 +38,27 @@ const command: Command = {
 		if (members.length < teamCount) {
 			return await sendErrorReply(
 				interaction,
-				`チーム数 (${teamCount}) よりメンバーが少ないため、チーム分けできません。`
+				`チーム数 (${teamCount}) よりメンバーが少ないため、チーム分けできません。`,
 			)
 		}
 
 		// メンバーをランダムにシャッフル
 		for (let i = members.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1))
-			;[members[i], members[j]] = [members[j], members[i]]
+			const memberJ = members[j]
+			const memberI = members[i]
+			if (memberJ && memberI) {
+				;[members[i], members[j]] = [memberJ, memberI]
+			}
 		}
 
 		// チームごとにメンバーを分配
 		const teams: string[][] = Array.from({ length: teamCount }, () => [])
 		members.forEach((member, index) => {
-			teams[index % teamCount].push(member.displayName)
+			const team = teams[index % teamCount]
+			if (team) {
+				team.push(member.displayName)
+			}
 		})
 
 		// 埋め込みメッセージの作成
@@ -72,7 +76,6 @@ const command: Command = {
 			embeds: [embed],
 		})
 	},
-	cooldown: 10,
 }
 
 export default command

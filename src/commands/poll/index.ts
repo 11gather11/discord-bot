@@ -1,13 +1,7 @@
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 import { config } from '@/config/config'
-import type { Command } from '@/types/client'
+import type { Command } from '@/types/command'
 import { sendErrorReply } from '@/utils/sendErrorReply'
-import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	EmbedBuilder,
-	SlashCommandBuilder,
-} from 'discord.js'
 
 const command: Command = {
 	// コマンドのデータ
@@ -15,13 +9,13 @@ const command: Command = {
 		.setName('投票')
 		.setDescription('投票を作成します')
 		.addStringOption((option) =>
-			option.setName('質問').setDescription('投票の質問を入力してください').setRequired(true)
+			option.setName('質問').setDescription('投票の質問を入力してください').setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName('選択肢')
 				.setDescription('カンマで区切られた選択肢を入力してください (例: 選択肢1,選択肢2)')
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addIntegerOption((option) =>
 			option
@@ -29,7 +23,7 @@ const command: Command = {
 				.setDescription('投票の時間を秒単位で入力してください (デフォルト: 60秒)')
 				.setRequired(false)
 				.setMinValue(10)
-				.setMaxValue(86400)
+				.setMaxValue(86400),
 		),
 
 	execute: async (interaction) => {
@@ -72,7 +66,7 @@ const command: Command = {
 				new ButtonBuilder()
 					.setCustomId(`vote_${index}`)
 					.setLabel(`${index + 1}`)
-					.setStyle(ButtonStyle.Primary)
+					.setStyle(ButtonStyle.Primary),
 			)
 		})
 
@@ -130,7 +124,7 @@ const command: Command = {
 
 		collector.on('collect', (i) => {
 			const previousVoteIndex = userVotes.get(i.user.id)
-			const newVoteIndex = Number.parseInt(i.customId.split('_')[1])
+			const newVoteIndex = Number.parseInt(i.customId.split('_')[1] ?? '0', 10)
 
 			// 以前の投票をキャンセル
 			if (previousVoteIndex !== undefined) {
@@ -170,7 +164,6 @@ const command: Command = {
 			})
 		})
 	},
-	cooldown: 10,
 }
 
 export default command

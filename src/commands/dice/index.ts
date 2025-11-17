@@ -1,10 +1,9 @@
-import { config } from '@/config/config'
-import type { Command } from '@/types/client'
-import { sendErrorReply } from '@/utils/sendErrorReply'
-import { toHalfWidth } from '@/utils/toHalfWidth'
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js'
+import { config } from '@/config/config'
+import type { Command } from '@/types/command'
+import { sendErrorReply } from '@/utils/sendErrorReply'
 
-const command: Command = {
+export default {
 	command: new SlashCommandBuilder()
 		.setName('ダイス')
 		.setDescription('ダイスを振るコマンドです。')
@@ -16,10 +15,10 @@ const command: Command = {
 					option
 						.setName('式')
 						.setDescription(
-							'入力例: 1d100 ← 100面のダイスを1回振る場合 1d10+1d6 ← 10面のダイスを1回振った結果と6面のダイスを1回振った結果を足す場合'
+							'入力例: 1d100 ← 100面のダイスを1回振る場合 1d10+1d6 ← 10面のダイスを1回振った結果と6面のダイスを1回振った結果を足す場合',
 						)
-						.setRequired(true)
-				)
+						.setRequired(true),
+				),
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
@@ -29,10 +28,10 @@ const command: Command = {
 					option
 						.setName('式')
 						.setDescription(
-							'入力例: 1d100 ← 100面のダイスを1回振る場合 1d10+1d6 ← 10面のダイスを1回振った結果と6面のダイスを1回振った結果を足す場合'
+							'入力例: 1d100 ← 100面のダイスを1回振る場合 1d10+1d6 ← 10面のダイスを1回振った結果と6面のダイスを1回振った結果を足す場合',
 						)
-						.setRequired(true)
-				)
+						.setRequired(true),
+				),
 		),
 
 	execute: async (interaction) => {
@@ -57,8 +56,7 @@ const command: Command = {
 			ephemeral: isSecret, // secret の場合は他のユーザーには見えない
 		})
 	},
-	cooldown: 5,
-}
+} satisfies Command
 
 // ダイス式の正規表現
 const regex = /^(\d+)d(\d+)$/
@@ -72,7 +70,7 @@ export const rollDice = (expression: string): { success: boolean; message: strin
 
 	for (const pattern of dicePatterns) {
 		const match = pattern.trim().match(regex)
-		if (!match) {
+		if (!match || !match[1] || !match[2]) {
 			return {
 				success: false,
 				message: '無効なフォーマットです。NdM形式を使用してください（例:2d6）。',
@@ -100,4 +98,13 @@ export const rollDice = (expression: string): { success: boolean; message: strin
 	return { success: true, message }
 }
 
-export default command
+// 全角文字を半角文字に変換する関数
+const toHalfWidth = (str: string): string => {
+	return (
+		str
+			// 全角の記号と数字、アルファベットを半角に変換
+			.replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+			// 全角スペースを半角スペースに変換
+			.replace(/\u3000/g, ' ')
+	)
+}

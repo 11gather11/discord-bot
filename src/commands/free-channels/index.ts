@@ -1,12 +1,7 @@
+import { type ChatInputCommandInteraction, EmbedBuilder, type GuildMember, SlashCommandBuilder } from 'discord.js'
 import { config } from '@/config/config'
-import type { Command } from '@/types/client'
+import type { Command } from '@/types/command'
 import { sendErrorReply } from '@/utils/sendErrorReply'
-import {
-	type ChatInputCommandInteraction,
-	EmbedBuilder,
-	type GuildMember,
-	SlashCommandBuilder,
-} from 'discord.js'
 
 // 環境変数
 const { DISCORD_FREE_VOICE_CHANNEL_ID, DISCORD_FREE_VOICE_CATEGORY_ID } = process.env
@@ -29,8 +24,8 @@ const command: Command = {
 						.setDescription('新しい名前を入力してください。')
 						.setRequired(true)
 						.setMinLength(5)
-						.setMaxLength(30)
-				)
+						.setMaxLength(30),
+				),
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
@@ -42,8 +37,8 @@ const command: Command = {
 						.setDescription('人数制限を入力してください。(0で制限なし)')
 						.setRequired(true)
 						.setMinValue(0)
-						.setMaxValue(99)
-				)
+						.setMaxValue(99),
+				),
 		),
 
 	execute: async (interaction) => {
@@ -63,16 +58,10 @@ const renameFreeChannel = async (interaction: ChatInputCommandInteraction) => {
 	const member = interaction.member as GuildMember
 	const voiceChannel = member.voice.channel
 	if (!voiceChannel) {
-		return await sendErrorReply(
-			interaction,
-			'フリーボイスチャンネルに参加してからコマンドを実行してください。'
-		)
+		return await sendErrorReply(interaction, 'フリーボイスチャンネルに参加してからコマンドを実行してください。')
 	}
 	if (voiceChannel.id === DISCORD_FREE_VOICE_CHANNEL_ID) {
-		return await sendErrorReply(
-			interaction,
-			'フリーボイスチャンネル作成チャンネルでは実行できません。'
-		)
+		return await sendErrorReply(interaction, 'フリーボイスチャンネル作成チャンネルでは実行できません。')
 	}
 	const category = voiceChannel.parent
 	// フリーチャンネルでない場合はエラーを返す
@@ -97,16 +86,10 @@ const setLimit = async (interaction: ChatInputCommandInteraction) => {
 	const member = interaction.member as GuildMember
 	const voiceChannel = member.voice.channel
 	if (!voiceChannel) {
-		return await sendErrorReply(
-			interaction,
-			'フリーボイスチャンネルに参加してからコマンドを実行してください。'
-		)
+		return await sendErrorReply(interaction, 'フリーボイスチャンネルに参加してからコマンドを実行してください。')
 	}
 	if (voiceChannel.id === DISCORD_FREE_VOICE_CHANNEL_ID) {
-		return await sendErrorReply(
-			interaction,
-			'フリーボイスチャンネル作成チャンネルでは実行できません。'
-		)
+		return await sendErrorReply(interaction, 'フリーボイスチャンネル作成チャンネルでは実行できません。')
 	}
 	const category = voiceChannel.parent
 	// フリーチャンネルでない場合はエラーを返す

@@ -1,6 +1,3 @@
-import { config } from '@/config/config'
-import type { Command } from '@/types/client'
-import { sendErrorReply } from '@/utils/sendErrorReply'
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -13,6 +10,9 @@ import {
 	type MessageActionRowComponentBuilder,
 	SlashCommandBuilder,
 } from 'discord.js'
+import { config } from '@/config/config'
+import type { Command } from '@/types/command'
+import { sendErrorReply } from '@/utils/sendErrorReply'
 
 const command: Command = {
 	command: new SlashCommandBuilder()
@@ -27,8 +27,8 @@ const command: Command = {
 						.setName('秒数')
 						.setDescription('じゃんけんを行う時間を秒単位で指定します。(デフォルト: 10秒)')
 						.setMinValue(5)
-						.setMaxValue(60)
-				)
+						.setMaxValue(60),
+				),
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
@@ -39,8 +39,8 @@ const command: Command = {
 						.setName('秒数')
 						.setDescription('じゃんけんを行う時間を秒単位で指定します。(デフォルト: 10秒)')
 						.setMinValue(5)
-						.setMaxValue(60)
-				)
+						.setMaxValue(60),
+				),
 		),
 
 	execute: async (interaction) => {
@@ -59,10 +59,7 @@ const command: Command = {
 			// ボイスチャンネルが取得できなかった場合
 			if (!voiceChannel) {
 				// エラーメッセージを返信
-				return await sendErrorReply(
-					interaction,
-					'ボイスチャンネルに参加してからコマンドを実行してください。'
-				)
+				return await sendErrorReply(interaction, 'ボイスチャンネルに参加してからコマンドを実行してください。')
 			}
 
 			const membersInVc = voiceChannel.members // ボイスチャンネル内のメンバーを取得
@@ -76,14 +73,9 @@ const command: Command = {
 			await startJanken(interaction, timeInMs, allowedUserIds) // VC限定のじゃんけんを開始
 		}
 	},
-	cooldown: 10,
 }
 // じゃんけんの開始処理
-const startJanken = async (
-	interaction: ChatInputCommandInteraction,
-	timeInMs: number,
-	allowedUserIds?: string[]
-) => {
+const startJanken = async (interaction: ChatInputCommandInteraction, timeInMs: number, allowedUserIds?: string[]) => {
 	// VC参加者の情報を取得し保持する
 	const membersInVc = allowedUserIds ? allowedUserIds.map((id) => `<@${id}>`) : undefined
 	const actionRow = createJankenButtons() // じゃんけんボタンを作成
@@ -113,7 +105,7 @@ const createJankenButtons = () => {
 	return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
 		new ButtonBuilder().setCustomId('グー').setLabel('✊🏼 グー').setStyle(ButtonStyle.Primary),
 		new ButtonBuilder().setCustomId('チョキ').setLabel('✌🏼 チョキ').setStyle(ButtonStyle.Success),
-		new ButtonBuilder().setCustomId('パー').setLabel('🖐🏼 パー').setStyle(ButtonStyle.Danger)
+		new ButtonBuilder().setCustomId('パー').setLabel('🖐🏼 パー').setStyle(ButtonStyle.Danger),
 	)
 }
 
@@ -136,7 +128,7 @@ const collectChoices = async (
 	timeInMs: number,
 	message: Message,
 	allowedUserIds?: string[],
-	membersInVc?: string[]
+	membersInVc?: string[],
 ): Promise<Map<string, string>> => {
 	const filter = (i: Interaction) => i.isButton()
 	const collector = message.createMessageComponentCollector({ filter, time: timeInMs })
@@ -174,20 +166,14 @@ const collectChoices = async (
 }
 
 // 参加者がいなかった場合の処理
-const endJankenWithNoParticipants = async (
-	interaction: ChatInputCommandInteraction,
-	embed: EmbedBuilder
-) => {
+const endJankenWithNoParticipants = async (interaction: ChatInputCommandInteraction, embed: EmbedBuilder) => {
 	embed.setDescription('誰も参加しませんでした。')
 	embed.setFooter({ text: 'じゃんけんを開始するにはもう一度コマンドを実行してください。' })
 	await interaction.editReply({ embeds: [embed], components: [] })
 }
 
 // 結果を計算
-const calculateOutcome = (
-	results: [string, string][],
-	interaction: ChatInputCommandInteraction
-): Outcomes => {
+const calculateOutcome = (results: [string, string][], interaction: ChatInputCommandInteraction): Outcomes => {
 	const formattedResults = results.map(([userId, choice]) => ({
 		userId,
 		displayName: interaction.guild?.members.cache.get(userId)?.displayName,
@@ -203,16 +189,10 @@ const calculateOutcome = (
 }
 
 // 結果を表示
-const displayResults = async (
-	interaction: ChatInputCommandInteraction,
-	embed: EmbedBuilder,
-	outcomes: Outcomes
-) => {
+const displayResults = async (interaction: ChatInputCommandInteraction, embed: EmbedBuilder, outcomes: Outcomes) => {
 	let resultMessage = outcomes.results.map((r) => `${r.displayName}: ${r.emoji}`).join('\n')
 
-	resultMessage += outcomes.draw
-		? '\n\n引き分けです!'
-		: `\n\n**勝者:** ${outcomes.winners.join(', ')}`
+	resultMessage += outcomes.draw ? '\n\n引き分けです!' : `\n\n**勝者:** ${outcomes.winners.join(', ')}`
 
 	embed.setDescription(resultMessage)
 	await interaction.editReply({
@@ -228,7 +208,7 @@ const countChoices = (results: OutcomeResult[]) => {
 			counts[result.choice as keyof typeof counts]++
 			return counts
 		},
-		{ グー: 0, チョキ: 0, パー: 0 }
+		{ グー: 0, チョキ: 0, パー: 0 },
 	)
 }
 
@@ -244,10 +224,7 @@ const determineIfDraw = (counts: { グー: number; パー: number; チョキ: nu
 }
 
 // 勝者を決定する関数
-const determineWinners = (
-	results: OutcomeResult[],
-	counts: { グー: number; パー: number; チョキ: number }
-) => {
+const determineWinners = (results: OutcomeResult[], counts: { グー: number; パー: number; チョキ: number }) => {
 	const { グー, パー, チョキ } = counts
 	let winningChoice = ''
 
