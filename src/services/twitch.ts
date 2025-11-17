@@ -1,6 +1,6 @@
 import { type Client, EmbedBuilder, TextChannel } from 'discord.js'
 import { logger } from '@/lib/logger'
-import { fetchStreamingStatus, fetchTwitchAccessToken, fetchTwitchGameInfo, isAccessTokenValid } from '@/lib/twitch'
+import { fetchAccessToken, fetchGameInfo, fetchStreamingStatus, isAccessTokenValid } from '@/lib/twitch'
 import { postTweet } from '@/services/twitter'
 import type { TwitchGame, TwitchStream } from '@/types/twitch'
 
@@ -13,7 +13,7 @@ import type { TwitchGame, TwitchStream } from '@/types/twitch'
 export const startTwitchLiveNotification = async (client: Client, userLogin: string): Promise<void> => {
 	try {
 		// 初回のアクセストークンを取得
-		const accessToken = await fetchTwitchAccessToken()
+		const accessToken = await fetchAccessToken()
 		const notified = false
 
 		// 配信状況の監視を開始
@@ -43,7 +43,7 @@ const checkStreamingStatus = async (
 	try {
 		// トークンチェックと更新
 		const isValid = await isAccessTokenValid(accessToken)
-		const currentAccessToken = !isValid ? await fetchTwitchAccessToken() : accessToken
+		const currentAccessToken = !isValid ? await fetchAccessToken() : accessToken
 
 		const newNotified = await handleTwitchStreamingNotification(client, userLogin, currentAccessToken, notified)
 
@@ -76,7 +76,7 @@ const handleTwitchStreamingNotification = async (
 
 	// 通知するかの判定
 	if (streamingStatus && !notified) {
-		const twitchGameInfo = await fetchTwitchGameInfo(accessToken, streamingStatus.game_id)
+		const twitchGameInfo = await fetchGameInfo(accessToken, streamingStatus.game_id)
 
 		// 通知を送信
 		await sendTwitchStreamingNotification(client, userLogin, streamingStatus, twitchGameInfo)
