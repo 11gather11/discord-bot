@@ -1,5 +1,5 @@
-import { logger } from '@/helpers/logger'
 import type { Client } from 'discord.js'
+import { logger } from '@/lib/logger'
 
 // 環境変数
 const { DISCORD_GUILD_ID, DISCORD_MEMBER_COUNT_CHANNEL_ID } = process.env
@@ -44,7 +44,7 @@ export const updateMemberCounts = async (client: Client) => {
 		// メンバー数の更新を監視
 		checkForMemberCounts(client)
 
-		logger.success('メンバー数更新の監視を開始します')
+		logger.info('メンバー数更新の監視を開始します')
 	} catch (error) {
 		// 初期更新時のエラーをキャッチしてログに出力
 		logger.error('初期メンバー数更新に失敗しました:', (error as Error).message)

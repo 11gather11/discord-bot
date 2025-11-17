@@ -1,7 +1,6 @@
-import { fetchLatestYouTubeVideo, fetchUploadsPlaylistId } from '@/api/youtubeApi'
-import { logger } from '@/helpers/logger'
 import type { Client } from 'discord.js'
-import { type Result, err, ok } from 'neverthrow'
+import { fetchLatestYouTubeVideo, fetchUploadsPlaylistId } from '@/api/youtubeApi'
+import { logger } from '@/lib/logger'
 
 // 環境変数
 const { DISCORD_VIDEOS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
@@ -16,30 +15,22 @@ if (!(DISCORD_VIDEOS_CHANNEL_ID && DISCORD_GUILD_ID)) {
  * @param {string} channelId チャンネルID
  * @returns {Promise<void>}
  */
-export const startYouTubeVideoNotification = async (
-	client: Client,
-	channelId: string
-): Promise<void> => {
-	// 起動時にプレイリストIDを取得
-	const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)
-	if (uploadsPlaylistId.isErr()) {
-		logger.error(uploadsPlaylistId.error)
-		return
+export const startYouTubeVideoNotification = async (client: Client, channelId: string): Promise<void> => {
+	try {
+		// 起動時にプレイリストIDを取得
+		const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)
+
+		// 最新動画IDを取得
+		const lastVideoId = await initLastVideoId(uploadsPlaylistId)
+
+		// 最新動画IDを元に新しい動画をチェック
+		checkForNewVideos(client, uploadsPlaylistId, lastVideoId)
+
+		// 動画投稿の監視を開始
+		logger.info(`YouTube動画投稿の監視を開始しました: ${channelId}`)
+	} catch (error) {
+		logger.error(error as Error)
 	}
-
-	// 最新動画IDを取得
-	const lastVideoIdResult = await initLastVideoId(uploadsPlaylistId.value)
-	if (lastVideoIdResult.isErr()) {
-		logger.error(lastVideoIdResult.error)
-		return
-	}
-	const lastVideoId = lastVideoIdResult.value
-
-	// 最新動画IDを元に新しい動画をチェック
-	checkForNewVideos(client, uploadsPlaylistId.value, lastVideoId)
-
-	// 動画投稿の監視を開始
-	logger.success(`YouTube動画投稿の監視を開始しました: ${channelId}`)
 }
 
 /**
@@ -53,16 +44,12 @@ const checkForNewVideos = (client: Client, uploadsPlaylistId: string, lastVideoI
 	// 20分ごとにチェック
 	const timer = 1000 * 60 * 20
 	setTimeout(async () => {
-		const youTubeVideoNotificationResult = await handleYouTubeVideoNotification(
-			client,
-			uploadsPlaylistId,
-			lastVideoId
-		)
-		if (youTubeVideoNotificationResult.isErr()) {
-			logger.error(youTubeVideoNotificationResult.error)
-			return
+		try {
+			const newLastVideoId = await handleYouTubeVideoNotification(client, uploadsPlaylistId, lastVideoId)
+			checkForNewVideos(client, uploadsPlaylistId, newLastVideoId)
+		} catch (error) {
+			logger.error(error as Error)
 		}
-		checkForNewVideos(client, uploadsPlaylistId, youTubeVideoNotificationResult.value)
 	}, timer)
 }
 
@@ -71,37 +58,27 @@ const checkForNewVideos = (client: Client, uploadsPlaylistId: string, lastVideoI
  * @param {Client} client Discordクライアント
  * @param {string} uploadsPlaylistId アップロードプレイリストID
  * @param {string} lastVideoId 最新動画ID
- * @returns {Promise<Result<string, Error>>} 最新動画IDの取得結果
+ * @returns {Promise<string>} 最新動画ID
  */
 const handleYouTubeVideoNotification = async (
 	client: Client,
 	uploadsPlaylistId: string,
-	lastVideoId: string
-): Promise<Result<string, Error>> => {
+	lastVideoId: string,
+): Promise<string> => {
 	const latestVideo = await fetchLatestYouTubeVideo(uploadsPlaylistId)
-
-	if (latestVideo.isErr()) {
-		return err(latestVideo.error)
-	}
-	const videoId = latestVideo.value.contentDetails.videoId
+	const videoId = latestVideo.contentDetails.videoId
 
 	if (lastVideoId !== videoId) {
 		await sendYouTubeVideoNotification(client, videoId)
-
-		return ok(videoId)
+		return videoId
 	}
-	return ok(lastVideoId)
+	return lastVideoId
 }
 
 // 初期化関数：起動時に最新動画IDを保存
-const initLastVideoId = async (uploadsPlaylistId: string): Promise<Result<string, Error>> => {
-	const latestVideoResult = await fetchLatestYouTubeVideo(uploadsPlaylistId)
-	if (latestVideoResult.isErr()) {
-		return err(latestVideoResult.error)
-	}
-
-	const videoId = latestVideoResult.value.contentDetails.videoId
-	return ok(videoId)
+const initLastVideoId = async (uploadsPlaylistId: string): Promise<string> => {
+	const latestVideo = await fetchLatestYouTubeVideo(uploadsPlaylistId)
+	return latestVideo.contentDetails.videoId
 }
 
 // YouTubeの新しい動画の通知を送信
