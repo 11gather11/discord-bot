@@ -3,34 +3,72 @@ import { Collection } from 'discord.js'
 import { logger } from '@/lib/logger'
 import type { Command } from '@/types/command'
 
-const isValidCommand = (cmd: unknown): cmd is Command => {
+type CommandData = {
+	name: string
+	description: string
+	[key: string]: unknown
+}
+
+type RawCommand = {
+	command: CommandData
+	execute: (...args: unknown[]) => unknown
+	autocomplete?: (...args: unknown[]) => unknown
+	modal?: (...args: unknown[]) => unknown
+	button?: (...args: unknown[]) => unknown
+	[key: string]: unknown
+}
+
+const hasRequiredFields = (cmd: unknown): cmd is RawCommand => {
 	if (!cmd || typeof cmd !== 'object') return false
+	const obj = cmd as Record<string, unknown>
+	return typeof obj.command === 'object' && obj.command !== null && typeof obj.execute === 'function'
+}
 
-	const command = cmd as Record<string, unknown>
+const hasValidCommandData = (data: unknown): data is CommandData => {
+	if (!data || typeof data !== 'object') return false
+	const obj = data as Record<string, unknown>
+	return typeof obj.name === 'string' && typeof obj.description === 'string'
+}
 
-	if (!command.command || typeof command.command !== 'object') return false
-	if (!command.execute || typeof command.execute !== 'function') return false
-
-	const commandData = command.command as Record<string, unknown>
-	if (!commandData.name || typeof commandData.name !== 'string') return false
-	if (!commandData.description || typeof commandData.description !== 'string') return false
-
+const validateCommandName = (name: string): boolean => {
 	const nameRegex = /^[\w-]{1,32}$/
-	if (!nameRegex.test(commandData.name as string)) {
-		logger.warn(`コマンド名 "${commandData.name}" は1-32文字で、英数字、-、_のみ使用可能です`)
+	if (!nameRegex.test(name)) {
+		logger.warn(`Command name "${name}" must be 1-32 characters and use only alphanumeric, -, _`)
 		return false
 	}
-
-	if ((commandData.description as string).length > 100) {
-		logger.warn(`コマンド "${commandData.name}" の説明が100文字制限を超えています`)
-		return false
-	}
-
-	if (command.autocomplete && typeof command.autocomplete !== 'function') return false
-	if (command.modal && typeof command.modal !== 'function') return false
-	if (command.button && typeof command.button !== 'function') return false
-
 	return true
+}
+
+const validateDescription = (description: string, commandName: string): boolean => {
+	if (description.length > 100) {
+		logger.warn(`Command "${commandName}" description exceeds 100 character limit`)
+		return false
+	}
+	return true
+}
+
+const validateOptionalHandlers = (cmd: RawCommand): boolean => {
+	if (cmd.autocomplete && typeof cmd.autocomplete !== 'function') return false
+	if (cmd.modal && typeof cmd.modal !== 'function') return false
+	if (cmd.button && typeof cmd.button !== 'function') return false
+	return true
+}
+
+const isValidCommand = (cmd: unknown): cmd is Command => {
+	if (!hasRequiredFields(cmd)) return false
+	if (!hasValidCommandData(cmd.command)) return false
+	if (!validateCommandName(cmd.command.name)) return false
+	if (!validateDescription(cmd.command.description, cmd.command.name)) return false
+	if (!validateOptionalHandlers(cmd)) return false
+	return true
+}
+
+type LoadResult = {
+	file: string
+	command: Command | null
+	commandName?: string
+	isDuplicate: boolean
+	error?: unknown
 }
 
 export const loadCommands = async (): Promise<Collection<string, Command>> => {
@@ -40,68 +78,46 @@ export const loadCommands = async (): Promise<Collection<string, Command>> => {
 
 	const commandFiles = await Array.fromAsync(glob.scan(dir))
 
-	const loadCommandPromises = commandFiles.map(async (file) => {
-		try {
-			const commandModule = await import(`${dir}/${file}`)
-			const command = commandModule.default
+	const loadResults = await Promise.all(
+		commandFiles.map(async (file): Promise<LoadResult> => {
+			try {
+				const commandModule = await import(`${dir}/${file}`)
+				const command = commandModule.default
 
-			if (!command) {
-				logger.error(`コマンドファイル ${file} がデフォルトコマンドをエクスポートしていません`)
-				return { file, command: null, success: false }
+				if (!command) {
+					logger.error(`Command file ${file} does not export a default command`)
+					return { file, command: null, isDuplicate: false }
+				}
+
+				if (!isValidCommand(command)) {
+					logger.error(`Invalid command structure: ${file}`)
+					return { file, command: null, isDuplicate: false }
+				}
+
+				const commandName = command.command.name
+				const isDuplicate = collection.has(commandName)
+
+				if (isDuplicate) {
+					logger.error(`Duplicate command name "${commandName}" found in ${file}`)
+					return { file, command, commandName, isDuplicate: true }
+				}
+
+				return { file, command, commandName, isDuplicate: false }
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : String(error)
+				logger.error(`Failed to load command ${file}:`, errorMessage)
+				return { file, command: null, isDuplicate: false, error }
 			}
-
-			return { file, command, success: true }
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error)
-			logger.error(`コマンド ${file} の読み込みに失敗:`, errorMessage)
-			return { file, command: null, success: false, error }
-		}
-	})
-
-	const results = await Promise.allSettled(loadCommandPromises)
-
-	const processedResults = results.map((result) => {
-		if (result.status === 'fulfilled' && result.value.success) {
-			const { file, command } = result.value
-
-			if (!isValidCommand(command)) {
-				logger.error(`無効なコマンド構造 ${file}:`, {
-					hasCommand: !!command?.command,
-					hasExecute: typeof command?.execute === 'function',
-					commandName: command?.command?.name || 'unknown',
-					hasValidName: typeof command?.command?.name === 'string',
-					hasValidDescription: typeof command?.command?.description === 'string',
-				})
-				return { success: false, file, command: null, isDuplicate: false }
-			}
-
-			const commandName = command.command.name
-			const isDuplicate = collection.has(commandName)
-
-			if (isDuplicate) {
-				logger.error(`重複コマンド名 "${commandName}" が ${file} で見つかりました`)
-				return { success: false, file, command, isDuplicate: true, commandName }
-			}
-
-			return { success: true, file, command, commandName, isDuplicate: false }
-		}
-
-		return {
-			success: false,
-			file: 'unknown',
-			command: null,
-			isDuplicate: false,
-		}
-	})
+		}),
+	)
 
 	let loadedCount = 0
 	let failedCount = 0
 	const duplicateCommands: string[] = []
 
-	processedResults.forEach((result) => {
-		if (result.success && result.command && result.commandName) {
+	loadResults.forEach((result) => {
+		if (result.command && result.commandName && !result.isDuplicate) {
 			collection.set(result.commandName, result.command)
-			logger.log(`コマンドを読み込み: ${result.commandName}`)
 			loadedCount++
 		} else {
 			failedCount++
@@ -111,14 +127,14 @@ export const loadCommands = async (): Promise<Collection<string, Command>> => {
 		}
 	})
 
-	logger.info(`コマンド読み込み完了: ${loadedCount}個読み込み、${failedCount}個失敗`)
+	logger.info(`Commands loaded: ${loadedCount} succeeded, ${failedCount} failed`)
 
 	if (duplicateCommands.length > 0) {
-		logger.warn(`重複コマンド名が見つかりました: ${duplicateCommands.join(', ')}`)
+		logger.warn(`Duplicate command names found: ${duplicateCommands.join(', ')}`)
 	}
 
 	if (loadedCount === 0 && commandFiles.length > 0) {
-		logger.warn('コマンドが正常に読み込まれませんでした。コマンドファイルの構造とエクスポートを確認してください。')
+		logger.warn('No commands loaded successfully. Check command file structure and exports.')
 	}
 
 	return collection
