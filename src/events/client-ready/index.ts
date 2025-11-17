@@ -3,7 +3,7 @@ import { loadServicesConfig } from '@/config'
 import { monitorExistingChannels } from '@/events/voice-state-update'
 import { logger } from '@/lib/logger'
 import { updateMemberCounts } from '@/services/memberCounts'
-import { startTwitchLiveNotification } from '@/services/twitch'
+import { startLiveNotification } from '@/services/twitch'
 import { startYouTubeVideoNotification } from '@/services/youtube'
 import type { Event } from '@/types/event'
 
@@ -21,7 +21,7 @@ export default {
 			monitorExistingChannels(client)
 
 			// Twitchチャンネルの監視を開始
-			const twitchPromises = config.twitch.channels.map((channel) => startTwitchLiveNotification(client, channel))
+			const twitchPromises = config.twitch.channels.map((channel) => startLiveNotification(client, channel))
 
 			// YouTubeチャンネルの監視を開始
 			const youtubePromises = config.youtube.channelIds.map((channelId) =>

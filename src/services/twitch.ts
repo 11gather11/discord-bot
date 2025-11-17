@@ -4,163 +4,48 @@ import { fetchAccessToken, fetchGameInfo, fetchStreamingStatus, isAccessTokenVal
 import { postTweet } from '@/services/twitter'
 import type { TwitchGame, TwitchStream } from '@/types/twitch'
 
-/**
- * Twitchの配信通知を開始
- * @param {Client} client Discordクライアント
- * @param {string} userLogin ユーザーログイン名
- * @returns {Promise<void>}
- */
-export const startTwitchLiveNotification = async (client: Client, userLogin: string): Promise<void> => {
-	try {
-		// 初回のアクセストークンを取得
-		const accessToken = await fetchAccessToken()
-		const notified = false
+const CHECK_INTERVAL = 1000 * 60
+const TWITCH_COLOR = 0x9146ff
+const TWITCH_BASE_URL = 'https://www.twitch.tv'
+const TWITCH_FAVICON = 'https://static.twitchcdn.net/assets/favicon-32-e29e246c157142c94346.png'
+const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/144x192.png?text=No+Image'
 
-		// 配信状況の監視を開始
-		logger.info(`配信状況の監視を開始しました: ${userLogin}`)
-
-		// チェックを開始
-		await checkStreamingStatus(client, userLogin, accessToken, notified)
-	} catch (error) {
-		logger.error(error as Error)
+const getDiscordConfig = (): { guildId: string; channelId: string } => {
+	const guildId = import.meta.env.DISCORD_GUILD_ID
+	const channelId = import.meta.env.DISCORD_STREAMS_CHANNEL_ID
+	if (!(guildId && channelId)) {
+		throw new Error('[Twitch] DISCORD_GUILD_ID and DISCORD_STREAMS_CHANNEL_ID are not set')
 	}
+	return { guildId, channelId }
 }
 
-/**
- * 配信状況をチェックして通知を送信
- * @param {Client} client Discordクライアント
- * @param {string} userLogin ユーザーログイン名
- * @param {string} accessToken アクセストークン
- * @param {boolean} notified 通知済みフラグ
- * @returns {Promise<void>}
- */
-const checkStreamingStatus = async (
-	client: Client,
-	userLogin: string,
-	accessToken: string,
-	notified: boolean,
-): Promise<void> => {
-	try {
-		// トークンチェックと更新
-		const isValid = await isAccessTokenValid(accessToken)
-		const currentAccessToken = !isValid ? await fetchAccessToken() : accessToken
-
-		const newNotified = await handleTwitchStreamingNotification(client, userLogin, currentAccessToken, notified)
-
-		// 一定時間後に再度チェック
-		const timer = 1000 * 60
-		setTimeout(() => {
-			checkStreamingStatus(client, userLogin, currentAccessToken, newNotified)
-		}, timer)
-	} catch (error) {
-		logger.error(error as Error)
-	}
-}
-
-/**
- * 配信状況をチェックして通知を送信その後通知済みフラグを更新
- * @param {Client} client Discordクライアント
- * @param {string} userLogin ユーザーログイン名
- * @param {string} accessToken アクセストークン
- * @param {boolean} notified 通知済みフラグ
- * @returns {Promise<boolean>} 通知済みフラグの更新結果
- */
-const handleTwitchStreamingNotification = async (
-	client: Client,
-	userLogin: string,
-	accessToken: string,
-	notified: boolean,
-): Promise<boolean> => {
-	// 配信状況を取得
-	const streamingStatus = await fetchStreamingStatus(accessToken, userLogin)
-
-	// 通知するかの判定
-	if (streamingStatus && !notified) {
-		const twitchGameInfo = await fetchGameInfo(accessToken, streamingStatus.game_id)
-
-		// 通知を送信
-		await sendTwitchStreamingNotification(client, userLogin, streamingStatus, twitchGameInfo)
-
-		// 通知済みフラグをtrueにセット
-		return true
-	}
-	if (!streamingStatus && notified) {
-		// 配信中でなく通知済みの場合は通知済みフラグをfalseにセット
-		return false
-	}
-	// 通知する必要がない場合は通知済みフラグをそのまま返す
-	return notified
-}
-
-/**
- * Twitchの配信通知を送信
- * @param {Client} client Discordクライアント
- * @param {string} userLogin ユーザーログイン名
- * @param {TwitchStream} streamingStatus 配信状況
- * @param {TwitchGame | undefined} twitchGameInfo ゲーム情報
- * @returns {Promise<void>}
- */
-const sendTwitchStreamingNotification = async (
-	client: Client,
-	userLogin: string,
-	streamingStatus: TwitchStream,
-	twitchGameInfo: TwitchGame | undefined,
-): Promise<void> => {
-	const { DISCORD_GUILD_ID, DISCORD_STREAMS_CHANNEL_ID } = import.meta.env
-
-	if (!DISCORD_GUILD_ID || !DISCORD_STREAMS_CHANNEL_ID) {
-		logger.warn(
-			'DISCORD_GUILD_IDまたはDISCORD_STREAMS_CHANNEL_IDが設定されていません。Twitch配信通知の送信をスキップします。',
-		)
-		return
-	}
-	const { user_name: userName, title, viewer_count: viewerCount, started_at, thumbnail_url } = streamingStatus
+const buildStreamEmbed = (userLogin: string, stream: TwitchStream, game: TwitchGame | undefined): EmbedBuilder => {
+	const { user_name, title, viewer_count, started_at, thumbnail_url } = stream
 	const startedAt = new Date(started_at).toLocaleString('ja-JP')
-	const gameName = twitchGameInfo?.name || '不明'
-	const gameImageUrl =
-		twitchGameInfo?.box_art_url ||
-		'https://via.placeholder.com/144x192.png?text=No+Image'.replace('{width}', '144').replace('{height}', '192')
+	const gameName = game?.name || '不明'
+	const gameImageUrl = game?.box_art_url?.replace('{width}', '144').replace('{height}', '192') || PLACEHOLDER_IMAGE
 	const thumbnailUrl = thumbnail_url.replace('{width}', '640').replace('{height}', '360')
 
-	const embed = new EmbedBuilder()
-		.setColor(0x9146ff) // 埋め込みの左側の色を設定
-		.setTitle(`${title}`) // タイトルを設定
-		.setURL(`https://www.twitch.tv/${userLogin}`) // タイトルをクリックするとTwitchにリンク
-		.setAuthor({
-			name: userName,
-			url: `https://www.twitch.tv/${userLogin}`,
-		}) // 名前を設定
-		.setThumbnail(gameImageUrl) // 埋め込みの右上に表示される画像を設定
+	return new EmbedBuilder()
+		.setColor(TWITCH_COLOR)
+		.setTitle(title)
+		.setURL(`${TWITCH_BASE_URL}/${userLogin}`)
+		.setAuthor({ name: user_name, url: `${TWITCH_BASE_URL}/${userLogin}` })
+		.setThumbnail(gameImageUrl)
 		.addFields(
-			{ name: '👥 視聴者数', value: viewerCount.toString(), inline: true },
+			{ name: '👥 視聴者数', value: viewer_count.toString(), inline: true },
 			{ name: '🎮 ゲーム', value: gameName, inline: true },
-		) // 埋め込みのフィールドを追加
-		.setImage(thumbnailUrl) // サムネイルを大きな画像として表示
-		.setFooter({
-			text: `配信開始: ${startedAt}`,
-			iconURL: 'https://static.twitchcdn.net/assets/favicon-32-e29e246c157142c94346.png',
-		}) // 埋め込みの下部に表示されるフッターを設定
-
-	// 配信開始時にDiscordに通知を送信
-	const embedMessage = `@everyone ${userName}がTwitchで配信を開始しました!`
-	// 配信開始時にTwitterにツイートを投稿
-	const tweetText = `${userName}がTwitchで配信を開始しました! \n\n🎮 ゲーム: ${gameName}\n📺 タイトル: ${title}\n\n視聴はこちら: https://www.twitch.tv/${userLogin} \n\n#Twitch #配信 #${gameName}`
-	// メッセージを送信
-	await Promise.all([
-		sendDiscordEmbedMessage(client, DISCORD_GUILD_ID, DISCORD_STREAMS_CHANNEL_ID, embed, embedMessage),
-		postTweet(tweetText),
-	])
+		)
+		.setImage(thumbnailUrl)
+		.setFooter({ text: `配信開始: ${startedAt}`, iconURL: TWITCH_FAVICON })
 }
 
-/**
- * Discordに埋め込みメッセージを送信
- * @param {Client} client Discordクライアント
- * @param {string} guildId サーバーID
- * @param {string} channelId チャンネルID
- * @param {EmbedBuilder} embed 埋め込みメッセージ
- * @returns {Promise<void>}
- */
-const sendDiscordEmbedMessage = async (
+const buildTweetText = (userLogin: string, stream: TwitchStream, gameName: string): string => {
+	const { user_name, title } = stream
+	return `${user_name}がTwitchで配信を開始しました! \n\n🎮 ゲーム: ${gameName}\n📺 タイトル: ${title}\n\n視聴はこちら: ${TWITCH_BASE_URL}/${userLogin} \n\n#Twitch #配信 #${gameName}`
+}
+
+const sendToDiscord = async (
 	client: Client,
 	guildId: string,
 	channelId: string,
@@ -168,20 +53,80 @@ const sendDiscordEmbedMessage = async (
 	message: string,
 ): Promise<void> => {
 	try {
-		// サーバーを取得
 		const guild = await client.guilds.fetch(guildId)
-		// チャンネルを取得
 		const channel = await guild.channels.fetch(channelId)
-		if (channel instanceof TextChannel) {
-			// メッセージを送信
-			await channel.send({
-				content: message,
-				embeds: [embed],
-			})
-		} else {
-			logger.error('指定されたチャンネルIDはテキストチャンネルではありません')
+		if (!(channel instanceof TextChannel)) {
+			throw new Error('[Twitch] Channel is not a text channel')
 		}
+		await channel.send({ content: message, embeds: [embed] })
 	} catch (error) {
-		logger.error('Discord埋め込みメッセージの送信に失敗しました:', (error as Error).message)
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		throw new Error(`[Twitch] Failed to send Discord message: ${errorMessage}`)
+	}
+}
+
+const notifyStream = async (
+	client: Client,
+	userLogin: string,
+	stream: TwitchStream,
+	game: TwitchGame | undefined,
+): Promise<void> => {
+	try {
+		const { guildId, channelId } = getDiscordConfig()
+		const embed = buildStreamEmbed(userLogin, stream, game)
+		const gameName = game?.name || '不明'
+		const discordMessage = `@everyone ${stream.user_name}がTwitchで配信を開始しました!`
+		const tweetText = buildTweetText(userLogin, stream, gameName)
+
+		await Promise.all([sendToDiscord(client, guildId, channelId, embed, discordMessage), postTweet(tweetText)])
+		logger.info(`[Twitch] ${userLogin} の配信開始を検知: ${stream.title}`)
+	} catch (error) {
+		logger.error('[Twitch] Failed to send stream notification:', error as Error)
+	}
+}
+
+const handleNotification = async (
+	client: Client,
+	userLogin: string,
+	accessToken: string,
+	notified: boolean,
+): Promise<boolean> => {
+	const stream = await fetchStreamingStatus(accessToken, userLogin)
+
+	if (stream && !notified) {
+		const game = await fetchGameInfo(accessToken, stream.game_id)
+		await notifyStream(client, userLogin, stream, game)
+		return true
+	}
+
+	return stream ? notified : false
+}
+
+const checkStatus = async (
+	client: Client,
+	userLogin: string,
+	accessToken: string,
+	notified: boolean,
+): Promise<void> => {
+	try {
+		const isValid = await isAccessTokenValid(accessToken)
+		const currentToken = isValid ? accessToken : await fetchAccessToken()
+		const newNotified = await handleNotification(client, userLogin, currentToken, notified)
+
+		setTimeout(() => {
+			checkStatus(client, userLogin, currentToken, newNotified)
+		}, CHECK_INTERVAL)
+	} catch (error) {
+		logger.error('[Twitch] Failed to check stream status:', error as Error)
+	}
+}
+
+export const startLiveNotification = async (client: Client, userLogin: string): Promise<void> => {
+	try {
+		const accessToken = await fetchAccessToken()
+		logger.info(`配信状況の監視を開始しました: ${userLogin}`)
+		await checkStatus(client, userLogin, accessToken, false)
+	} catch (error) {
+		logger.error('[Twitch] Failed to start live notification:', error as Error)
 	}
 }
