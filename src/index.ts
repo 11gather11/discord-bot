@@ -1,7 +1,6 @@
-import { readdirSync } from 'node:fs'
-import { join } from 'node:path'
-import { Client, Collection, GatewayIntentBits } from 'discord.js'
-import type { Command } from '@/types/command'
+import { Client, GatewayIntentBits } from 'discord.js'
+import { loadCommands } from '@/handlers/commands'
+import { loadEvents } from '@/handlers/events'
 
 // 新しいClientインスタンスを作成
 const client = new Client({
@@ -15,15 +14,8 @@ const client = new Client({
 })
 
 // コマンドを格納するコレクション
-client.commands = new Collection<string, Command>()
+client.commands = await loadCommands()
 
-const handlersDir = join(__dirname, './handlers')
-for (const file of readdirSync(handlersDir)) {
-	if (!(file.endsWith('.ts') || file.endsWith('.js'))) {
-		continue
-	}
-	const { default: handler } = await import(join(handlersDir, file))
-	handler(client)
-}
+await loadEvents(client)
 
 client.login(import.meta.env.DISCORD_TOKEN)
