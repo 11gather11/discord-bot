@@ -4,7 +4,7 @@ import { monitorExistingChannels } from '@/events/voice-state-update'
 import { logger } from '@/lib/logger'
 import { updateMemberCounts } from '@/services/memberCounts'
 import { startLiveNotification } from '@/services/twitch'
-import { startYouTubeVideoNotification } from '@/services/youtube'
+import { startVideoNotification } from '@/services/youtube'
 import type { Event } from '@/types/event'
 
 export default {
@@ -24,9 +24,7 @@ export default {
 			const twitchPromises = config.twitch.channels.map((channel) => startLiveNotification(client, channel))
 
 			// YouTubeチャンネルの監視を開始
-			const youtubePromises = config.youtube.channelIds.map((channelId) =>
-				startYouTubeVideoNotification(client, channelId),
-			)
+			const youtubePromises = config.youtube.channelIds.map((channelId) => startVideoNotification(client, channelId))
 
 			await Promise.all([...twitchPromises, ...youtubePromises])
 		} catch (error) {

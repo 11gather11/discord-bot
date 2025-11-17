@@ -2,105 +2,81 @@ import type { Client } from 'discord.js'
 import { logger } from '@/lib/logger'
 import { fetchLatestVideo, fetchUploadsPlaylistId } from '@/lib/youtube'
 
-// 環境変数
-const { DISCORD_VIDEOS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
+const CHECK_INTERVAL = 1000 * 60 * 20
+const YOUTUBE_BASE_URL = 'https://www.youtube.com/watch?v='
 
-if (!(DISCORD_VIDEOS_CHANNEL_ID && DISCORD_GUILD_ID)) {
-	throw new Error('環境変数が設定されていません')
+const getDiscordConfig = (): { guildId: string; channelId: string } => {
+	const guildId = import.meta.env.DISCORD_GUILD_ID
+	const channelId = import.meta.env.DISCORD_VIDEOS_CHANNEL_ID
+	if (!(guildId && channelId)) {
+		throw new Error('[YouTube] DISCORD_GUILD_ID and DISCORD_VIDEOS_CHANNEL_ID are not set')
+	}
+	return { guildId, channelId }
 }
 
-/**
- * YouTubeの新しい動画の通知を開始
- * @param {Client} client Discordクライアント
- * @param {string} channelId チャンネルID
- * @returns {Promise<void>}
- */
-export const startYouTubeVideoNotification = async (client: Client, channelId: string): Promise<void> => {
+const initVideoId = async (uploadsPlaylistId: string): Promise<string> => {
+	const latestVideo = await fetchLatestVideo(uploadsPlaylistId)
+	return latestVideo.contentDetails.videoId
+}
+
+const sendToDiscord = async (client: Client, guildId: string, channelId: string, videoId: string): Promise<void> => {
 	try {
-		// 起動時にプレイリストIDを取得
-		const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)
-
-		// 最新動画IDを取得
-		const lastVideoId = await initLastVideoId(uploadsPlaylistId)
-
-		// 最新動画IDを元に新しい動画をチェック
-		checkForNewVideos(client, uploadsPlaylistId, lastVideoId)
-
-		// 動画投稿の監視を開始
-		logger.info(`YouTube動画投稿の監視を開始しました: ${channelId}`)
+		const guild = await client.guilds.fetch(guildId)
+		const channel = await guild.channels.fetch(channelId)
+		if (!channel) {
+			throw new Error('[YouTube] Channel not found')
+		}
+		if (!channel.isTextBased()) {
+			throw new Error('[YouTube] Channel is not a text channel')
+		}
+		await channel.send({
+			content: `@everyone 新しい動画が投稿されました！\n${YOUTUBE_BASE_URL}${videoId}`,
+		})
 	} catch (error) {
-		logger.error(error as Error)
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		throw new Error(`[YouTube] Failed to send Discord message: ${errorMessage}`)
 	}
 }
 
-/**
- * 新しい動画をチェックして通知を送信
- * @param {Client} client Discordクライアント
- * @param {string} uploadsPlaylistId アップロードプレイリストID
- * @param {string} lastVideoId 最新動画ID
- * @returns {void}
- */
-const checkForNewVideos = (client: Client, uploadsPlaylistId: string, lastVideoId: string) => {
-	// 20分ごとにチェック
-	const timer = 1000 * 60 * 20
-	setTimeout(async () => {
-		try {
-			const newLastVideoId = await handleYouTubeVideoNotification(client, uploadsPlaylistId, lastVideoId)
-			checkForNewVideos(client, uploadsPlaylistId, newLastVideoId)
-		} catch (error) {
-			logger.error(error as Error)
-		}
-	}, timer)
+const notifyVideo = async (client: Client, videoId: string): Promise<void> => {
+	try {
+		const { guildId, channelId } = getDiscordConfig()
+		await sendToDiscord(client, guildId, channelId, videoId)
+		logger.info(`[YouTube] 新しい動画を検知: ${YOUTUBE_BASE_URL}${videoId}`)
+	} catch (error) {
+		logger.error('[YouTube] Failed to send video notification:', error as Error)
+	}
 }
 
-/**
- * YouTubeの新しい動画をチェックして通知を送信その後最新動画IDを返す
- * @param {Client} client Discordクライアント
- * @param {string} uploadsPlaylistId アップロードプレイリストID
- * @param {string} lastVideoId 最新動画ID
- * @returns {Promise<string>} 最新動画ID
- */
-const handleYouTubeVideoNotification = async (
-	client: Client,
-	uploadsPlaylistId: string,
-	lastVideoId: string,
-): Promise<string> => {
+const handleNotification = async (client: Client, uploadsPlaylistId: string, lastVideoId: string): Promise<string> => {
 	const latestVideo = await fetchLatestVideo(uploadsPlaylistId)
 	const videoId = latestVideo.contentDetails.videoId
 
 	if (lastVideoId !== videoId) {
-		await sendYouTubeVideoNotification(client, videoId)
+		await notifyVideo(client, videoId)
 		return videoId
 	}
 	return lastVideoId
 }
 
-// 初期化関数：起動時に最新動画IDを保存
-const initLastVideoId = async (uploadsPlaylistId: string): Promise<string> => {
-	const latestVideo = await fetchLatestVideo(uploadsPlaylistId)
-	return latestVideo.contentDetails.videoId
+const checkStatus = (client: Client, uploadsPlaylistId: string, lastVideoId: string): void => {
+	setTimeout(async () => {
+		try {
+			const newVideoId = await handleNotification(client, uploadsPlaylistId, lastVideoId)
+			checkStatus(client, uploadsPlaylistId, newVideoId)
+		} catch (error) {
+			logger.error('[YouTube] Failed to check video status:', error as Error)
+		}
+	}, CHECK_INTERVAL)
 }
 
-// YouTubeの新しい動画の通知を送信
-const sendYouTubeVideoNotification = async (client: Client, videoId: string): Promise<void> => {
-	// サーバーを取得
-	const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
-	// チャンネルを取得
-	const channel = await guild.channels.fetch(DISCORD_VIDEOS_CHANNEL_ID)
-	// チャンネルが見つからない場合はエラーを出力
-	if (!channel) {
-		logger.error('指定されたチャンネルが見つかりませんでした')
-		return
-	}
-	if (channel.isTextBased()) {
-		try {
-			await channel.send({
-				content: `@everyone 新しい動画が投稿されました！\nhttps://www.youtube.com/watch?v=${videoId}`,
-			})
-		} catch (error) {
-			logger.error('動画の通知に失敗しました:', (error as Error).message)
-		}
-	} else {
-		logger.error('指定されたチャンネルIDはテキストチャンネルではありません')
+export const startVideoNotification = async (client: Client, channelId: string): Promise<void> => {
+	try {
+		const uploadsPlaylistId = await fetchUploadsPlaylistId(channelId)
+		const lastVideoId = await initVideoId(uploadsPlaylistId)
+		checkStatus(client, uploadsPlaylistId, lastVideoId)
+		logger.info(`動画投稿の監視を開始しました: ${channelId}`)
+	} catch (error) {
+		logger.error('[YouTube] Failed to start video notification:', error as Error)
 	}
 }

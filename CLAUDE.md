@@ -84,3 +84,101 @@ export const fetchLatestVideo = async (uploadsPlaylistId: string): Promise<Playl
 - `src/lib/logger.ts` - 基本パターン
 - `src/lib/youtube.ts` - API統合の例
 - `src/lib/twitch.ts` - API統合の例
+
+## 【SHOULD】services/配下の実装パターン
+
+### 適用範囲
+`src/services/`配下のビジネスロジックモジュール（Twitch、YouTube等の通知サービス）
+
+### 必須要件
+
+#### 1. 環境変数の取得
+- ❌ `process.env`（トップレベル）
+- ✅ `import.meta.env`（関数内で取得）
+
+```typescript
+// ❌ Bad
+const { DISCORD_GUILD_ID, DISCORD_CHANNEL_ID } = process.env
+if (!DISCORD_GUILD_ID || !DISCORD_CHANNEL_ID) throw new Error('...')
+
+// ✅ Good
+const getDiscordConfig = (): { guildId: string; channelId: string } => {
+  const guildId = import.meta.env.DISCORD_GUILD_ID
+  const channelId = import.meta.env.DISCORD_CHANNEL_ID
+  if (!(guildId && channelId)) {
+    throw new Error('[ServiceName] DISCORD_GUILD_ID and DISCORD_CHANNEL_ID are not set')
+  }
+  return { guildId, channelId }
+}
+```
+
+#### 2. 定数分離
+タイマー、URL、色、画像URLは定数として定義
+
+```typescript
+const CHECK_INTERVAL = 1000 * 60 * 20
+const SERVICE_BASE_URL = 'https://example.com'
+const SERVICE_COLOR = 0x9146ff
+```
+
+#### 3. ヘルパー関数の分離
+小さな関数に責務を分割
+
+```typescript
+const getDiscordConfig = (): { guildId: string; channelId: string } => { /* ... */ }
+const buildEmbed = (...): EmbedBuilder => { /* ... */ }
+const sendToDiscord = async (...): Promise<void> => { /* ... */ }
+const notifyXxx = async (...): Promise<void> => { /* ... */ }
+const handleNotification = async (...): Promise<boolean | string> => { /* ... */ }
+const checkStatus = async (...): Promise<void> => { /* ... */ }
+```
+
+#### 4. エラーハンドリング
+`[ServiceName]` プレフィックス付きエラーメッセージ
+
+```typescript
+throw new Error('[Twitch] Failed to fetch access token')
+logger.error('[YouTube] Failed to send video notification:', error as Error)
+```
+
+#### 5. ログ出力
+成功時と失敗時の両方でログを出力
+
+```typescript
+// 成功ログ
+logger.info(`[Twitch] ${userLogin} の配信開始を検知: ${stream.title}`)
+
+// エラーログ
+logger.error('[Twitch] Failed to send stream notification:', error as Error)
+```
+
+#### 6. 関数名
+ファイル名で明確なコンテキストがある場合、冗長なプレフィックスは削除
+
+```typescript
+// ❌ Bad (twitch.ts 内)
+export const startTwitchLiveNotification = async (...) => { /* ... */ }
+
+// ✅ Good (twitch.ts 内)
+export const startLiveNotification = async (...) => { /* ... */ }
+```
+
+#### 7. コメント
+関数名と型シグネチャで意図が明確な場合はJSDocコメント不要
+
+```typescript
+// ❌ Bad
+/**
+ * Sends notification to Discord
+ * @param client - Discord client
+ * @param videoId - Video ID
+ */
+export const notifyVideo = async (client: Client, videoId: string): Promise<void> => { /* ... */ }
+
+// ✅ Good
+export const notifyVideo = async (client: Client, videoId: string): Promise<void> => { /* ... */ }
+```
+
+### 参考実装
+- `src/services/twitch.ts` - 配信通知サービスの例
+- `src/services/youtube.ts` - 動画通知サービスの例
