@@ -1,67 +1,70 @@
-import type { Client } from 'discord.js'
+import { ChannelType, type Client } from 'discord.js'
 import { logger } from '@/lib/logger'
 
-// メンバー数を更新する関数
-const memberCounts = async (client: Client) => {
-	const { DISCORD_GUILD_ID, DISCORD_MEMBER_COUNT_CHANNEL_ID } = import.meta.env
+const CHECK_INTERVAL = 1000 * 60 * 10
+const MEMBER_COUNT_FORMAT = (count: number) => `👥 メンバー数:${count}`
 
-	if (!DISCORD_GUILD_ID || !DISCORD_MEMBER_COUNT_CHANNEL_ID) {
-		logger.warn(
-			'DISCORD_GUILD_IDまたはDISCORD_MEMBER_COUNT_CHANNEL_IDが設定されていません。メンバー数の更新をスキップします。',
-		)
+const getDiscordConfig = (): { guildId: string; channelId: string } | null => {
+	const guildId = import.meta.env.DISCORD_GUILD_ID
+	const channelId = import.meta.env.DISCORD_MEMBER_COUNT_CHANNEL_ID
+
+	if (!(guildId && channelId)) {
+		return null
+	}
+
+	return { guildId, channelId }
+}
+
+const getNonBotMemberCount = async (client: Client, guildId: string): Promise<number> => {
+	const guild = await client.guilds.fetch(guildId)
+	const members = await guild.members.fetch()
+	return members.filter((member) => !member.user.bot).size
+}
+
+const updateChannelName = async (client: Client, guildId: string, channelId: string): Promise<void> => {
+	const guild = await client.guilds.fetch(guildId)
+	const channel = await guild.channels.fetch(channelId)
+
+	if (!channel) {
+		throw new Error('[MemberCounts] Channel not found')
+	}
+	if (channel.type !== ChannelType.GuildVoice) {
+		throw new Error('[MemberCounts] Channel is not a voice channel')
+	}
+
+	const memberCount = await getNonBotMemberCount(client, guildId)
+	const newChannelName = MEMBER_COUNT_FORMAT(memberCount)
+	await channel.setName(newChannelName)
+}
+
+const updateCount = async (client: Client): Promise<void> => {
+	const config = getDiscordConfig()
+	if (!config) {
+		logger.warn('[MemberCounts] DISCORD_GUILD_ID and DISCORD_MEMBER_COUNT_CHANNEL_ID are not set, skipping update')
 		return
 	}
+
 	try {
-		// サーバーを取得
-		const guild = await client.guilds.fetch(DISCORD_GUILD_ID)
-
-		// メンバー数を取得
-		const members = await guild.members.fetch()
-		const memberCount = members.filter((member) => !member.user.bot).size
-
-		// チャンネルを取得
-		const memberCountChannel = await guild.channels.fetch(DISCORD_MEMBER_COUNT_CHANNEL_ID)
-		if (!memberCountChannel || memberCountChannel.type !== 2) {
-			// チャンネルが見つからなかった場合のエラー処理
-			logger.error('指定されたチャンネルが見つかりませんでした')
-			return
-		}
-
-		// チャンネル名を更新
-		const newChannelName = `👥 メンバー数:${memberCount}`
-		await memberCountChannel.setName(newChannelName)
+		await updateChannelName(client, config.guildId, config.channelId)
+		logger.info('[MemberCounts] Member count updated successfully')
 	} catch (error) {
-		// エラー発生時に例外をスローしつつ、エラーログを出力
-		logger.error('メンバー数更新中にエラーが発生しました:', (error as Error).message)
+		logger.error('[MemberCounts] Failed to update member count:', error as Error)
 	}
 }
 
-// メンバー数を定期的に更新する関数
-export const updateMemberCounts = async (client: Client) => {
-	try {
-		// ボット起動時にメンバー数を更新
-		await memberCounts(client)
-
-		// メンバー数の更新を監視
-		checkForMemberCounts(client)
-
-		logger.info('メンバー数更新の監視を開始します')
-	} catch (error) {
-		// 初期更新時のエラーをキャッチしてログに出力
-		logger.error('初期メンバー数更新に失敗しました:', (error as Error).message)
-	}
-}
-
-/**
- * メンバー数を定期的に更新する関数
- * @param client
- */
-const checkForMemberCounts = (client: Client) => {
-	const timer = 1000 * 60 * 10
-
+const checkStatus = (client: Client): void => {
 	setTimeout(async () => {
-		await memberCounts(client)
+		await updateCount(client)
+		checkStatus(client)
+	}, CHECK_INTERVAL)
+}
 
-		checkForMemberCounts(client)
-	}, timer)
+export const update = async (client: Client): Promise<void> => {
+	try {
+		await updateCount(client)
+		checkStatus(client)
+		logger.info('[MemberCounts] Started monitoring member count updates')
+	} catch (error) {
+		logger.error('[MemberCounts] Failed to start member count updates:', error as Error)
+	}
 }
