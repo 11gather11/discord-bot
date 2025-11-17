@@ -10,3 +10,6 @@
 /build
 /dist
 /logs
+
+# environment variables
+.env.*
