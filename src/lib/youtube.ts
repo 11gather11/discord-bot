@@ -1,58 +1,65 @@
 import type { Channel, Playlist, PlaylistItems } from '@/types/youtube'
 
-// 環境変数
-const { YOUTUBE_API_KEY } = process.env
-if (!YOUTUBE_API_KEY) {
-	throw new Error('環境変数が設定されていません')
+const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3'
+
+const getApiKey = (): string => {
+	const apiKey = import.meta.env.YOUTUBE_API_KEY
+	if (!apiKey) {
+		throw new Error('[YouTube] YOUTUBE_API_KEY is not set')
+	}
+	return apiKey
 }
 
-/**
- * YouTube APIを使用して、アップロードプレイリストIDを取得します
- * @param {string} channelId チャンネルID
- * @returns {Promise<string>} アップロードプレイリストID
- */
+const buildUrl = (endpoint: string, params: Record<string, string>): string => {
+	const searchParams = new URLSearchParams({
+		...params,
+		key: getApiKey(),
+	})
+	return `${YOUTUBE_API_BASE_URL}/${endpoint}?${searchParams}`
+}
+
+const fetchApi = async <T>(url: string, errorMessage: string): Promise<T> => {
+	try {
+		const response = await fetch(url)
+		if (!response.ok) {
+			throw new Error(`${errorMessage}: ${response.status} ${response.statusText}`)
+		}
+		return (await response.json()) as T
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error)
+		throw new Error(`[YouTube] ${message}`)
+	}
+}
+
 export const fetchUploadsPlaylistId = async (channelId: string): Promise<string> => {
-	const url = 'https://www.googleapis.com/youtube/v3/channels'
-	const params = new URLSearchParams({
+	const url = buildUrl('channels', {
 		part: 'contentDetails',
 		id: channelId,
-		key: YOUTUBE_API_KEY,
 	})
-	const response = await fetch(`${url}?${params}`)
-	if (!response.ok) {
-		throw new Error('YouTubeアップロードプレイリストID取得エラー')
+
+	const data = await fetchApi<Channel>(url, 'Failed to fetch uploads playlist ID')
+
+	const firstChannel = data.items?.[0]
+	if (!firstChannel) {
+		throw new Error(`[YouTube] Channel not found: ${channelId}`)
 	}
-	const data = (await response.json()) as Channel
-	if (!data.items) {
-		throw new Error('チャンネルが見つかりませんでした')
-	}
-	return data.items[0].contentDetails.relatedPlaylists.uploads
+
+	return firstChannel.contentDetails.relatedPlaylists.uploads
 }
 
-/**
- * YouTube APIを使用して、最新の動画を取得します
- * @param {string} uploadsPlaylistId アップロードプレイリストID
- * @returns {Promise<PlaylistItems>} 最新動画
- */
-export const fetchLatestYouTubeVideo = async (uploadsPlaylistId: string): Promise<PlaylistItems> => {
-	const url = 'https://www.googleapis.com/youtube/v3/playlistItems'
-	const params = new URLSearchParams({
+export const fetchLatestVideo = async (uploadsPlaylistId: string): Promise<PlaylistItems> => {
+	const url = buildUrl('playlistItems', {
 		part: 'snippet,contentDetails',
 		playlistId: uploadsPlaylistId,
 		maxResults: '1',
-		key: YOUTUBE_API_KEY,
 	})
-	const response = await fetch(`${url}?${params}`)
-	if (!response.ok) {
-		throw new Error('YouTube最新動画取得エラー')
-	}
-	const data = (await response.json()) as Playlist
-	if (!data.items || data.items.length === 0) {
-		throw new Error('最新動画が見つかりませんでした')
-	}
-	const firstItem = data.items[0]
+
+	const data = await fetchApi<Playlist>(url, 'Failed to fetch latest video')
+
+	const firstItem = data.items?.[0]
 	if (!firstItem) {
-		throw new Error('最新動画が見つかりませんでした')
+		throw new Error(`[YouTube] No videos found in playlist: ${uploadsPlaylistId}`)
 	}
+
 	return firstItem
 }

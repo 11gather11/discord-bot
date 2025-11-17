@@ -1,6 +1,6 @@
 import type { Client } from 'discord.js'
 import { logger } from '@/lib/logger'
-import { fetchLatestYouTubeVideo, fetchUploadsPlaylistId } from '@/lib/youtube'
+import { fetchLatestVideo, fetchUploadsPlaylistId } from '@/lib/youtube'
 
 // 環境変数
 const { DISCORD_VIDEOS_CHANNEL_ID, DISCORD_GUILD_ID } = process.env
@@ -65,7 +65,7 @@ const handleYouTubeVideoNotification = async (
 	uploadsPlaylistId: string,
 	lastVideoId: string,
 ): Promise<string> => {
-	const latestVideo = await fetchLatestYouTubeVideo(uploadsPlaylistId)
+	const latestVideo = await fetchLatestVideo(uploadsPlaylistId)
 	const videoId = latestVideo.contentDetails.videoId
 
 	if (lastVideoId !== videoId) {
@@ -77,7 +77,7 @@ const handleYouTubeVideoNotification = async (
 
 // 初期化関数：起動時に最新動画IDを保存
 const initLastVideoId = async (uploadsPlaylistId: string): Promise<string> => {
-	const latestVideo = await fetchLatestYouTubeVideo(uploadsPlaylistId)
+	const latestVideo = await fetchLatestVideo(uploadsPlaylistId)
 	return latestVideo.contentDetails.videoId
 }
 
