@@ -1,73 +1,31 @@
 import { WebhookClient } from 'discord.js'
-import winston from 'winston'
 
 /**
- * WebhookClient のインスタンスを作成（URL が存在し有効な場合のみ）
- */
-const createWebhookLogger = (): WebhookClient | null => {
-	if (!import.meta.env.DISCORD_LOG_WEBHOOK_URL) {
-		console.warn('DISCORD_LOG_WEBHOOK_URL が設定されていません')
-		return null
-	}
-	try {
-		return new WebhookClient({ url: import.meta.env.DISCORD_LOG_WEBHOOK_URL })
-	} catch (error) {
-		console.error('WebhookClient の作成に失敗しました:', (error as Error).message)
-		return null
-	}
-}
-
-let webhookLogger: WebhookClient | null = null
-
-/**
- * WebhookLoggerを初期化する関数
- */
-const initializeWebhookLogger = (): void => {
-	if (import.meta.env.NODE_ENV === 'development') {
-		logger.warn('開発環境のため、Webhook ロガーは無効化されています')
-		return
-	}
-	webhookLogger = createWebhookLogger()
-}
-
-/**
- * サポートされるカラー名
- */
-type Colors = 'red' | 'yellow' | 'green' | 'blue' | 'magenta' | 'white'
-
-/**
- * サポートされるログレベル
+ * ログレベルの定義
  */
 type LogLevel = 'error' | 'warn' | 'success' | 'info' | 'http' | 'debug'
 
 /**
- * ログレベルと優先度のマッピング
+ * ANSIカラーの定義
  */
-const LOG_LEVELS = {
-	error: 0,
-	warn: 1,
-	success: 2,
-	info: 3,
-	http: 4,
-	debug: 5,
-} as const satisfies Record<LogLevel, number>
+type Color = 'red' | 'yellow' | 'green' | 'blue' | 'magenta' | 'white'
 
 /**
- * ログレベルと色のマッピング
+ * ログレベルごとの色マッピング
  */
-const LEVEL_COLORS: Record<LogLevel, Colors> = {
+const LEVEL_COLORS: Record<LogLevel, Color> = {
 	error: 'red',
 	warn: 'yellow',
 	success: 'green',
 	info: 'blue',
 	http: 'magenta',
 	debug: 'white',
-} as const
+}
 
 /**
- * ANSI カラーコードの定義
+ * ANSIカラーコード
  */
-const ANSI_COLORS: Record<Colors | 'reset', string> = {
+const ANSI_COLORS: Record<Color | 'reset', string> = {
 	red: '\u001b[31m',
 	yellow: '\u001b[33m',
 	green: '\u001b[32m',
@@ -78,18 +36,21 @@ const ANSI_COLORS: Record<Colors | 'reset', string> = {
 }
 
 /**
- * テキストに ANSI カラーを適用する関数
+ * Webhook送信対象のログレベル
  */
-const applyColor = (color: Colors, text: string): string => {
-	const colorCode = ANSI_COLORS[color]
-	const resetCode = ANSI_COLORS.reset
-	return `${colorCode}${text}${resetCode}`
+const WEBHOOK_LEVELS: readonly LogLevel[] = ['error', 'warn', 'success', 'info'] as const
+
+/**
+ * テキストにANSI色を適用
+ */
+const colorize = (color: Color, text: string): string => {
+	return `${ANSI_COLORS[color]}${text}${ANSI_COLORS.reset}`
 }
 
 /**
- * 日付を日本時間でフォーマットする関数
+ * 日本時間でタイムスタンプを生成
  */
-const getFormattedDate = (): string => {
+const getTimestamp = (): string => {
 	return new Date().toLocaleString('ja-JP', {
 		timeZone: 'Asia/Tokyo',
 		year: 'numeric',
@@ -103,22 +64,16 @@ const getFormattedDate = (): string => {
 }
 
 /**
- * メッセージを文字列に変換する関数（複数引数対応）
+ * 引数を文字列に変換
  */
-const formatMessage = (args: unknown[]): string => {
+const formatArgs = (args: unknown[]): string => {
 	return args
 		.map((arg) => {
-			if (typeof arg === 'string') {
-				return arg
-			}
-			if (arg instanceof Error) {
-				return `${arg.name} ${arg.message} ${arg.stack}`
-			}
+			if (typeof arg === 'string') return arg
+			if (arg instanceof Error) return `${arg.name}: ${arg.message}\n${arg.stack}`
 			try {
-				// オブジェクトや配列を JSON 文字列に変換
 				return JSON.stringify(arg, null, 2)
 			} catch {
-				// それ以外の型は文字列に変換
 				return String(arg)
 			}
 		})
@@ -126,103 +81,107 @@ const formatMessage = (args: unknown[]): string => {
 }
 
 /**
- * Discord の Webhook にメッセージを送信する関数
+ * WebhookClientのインスタンス
  */
-const sendWebhook = async (args: unknown[], level: LogLevel): Promise<void> => {
-	if (!webhookLogger) {
+let webhookClient: WebhookClient | null = null
+
+/**
+ * Webhook初期化
+ */
+const initWebhook = (): void => {
+	// 開発環境ではWebhookを無効化
+	if (import.meta.env.NODE_ENV === 'development') {
+		console.warn('[Webhook] 開発環境のため無効化されています')
 		return
 	}
 
+	// 環境変数チェック
+	const webhookUrl = import.meta.env.DISCORD_LOG_WEBHOOK_URL
+	if (!webhookUrl) {
+		console.warn('[Webhook] DISCORD_LOG_WEBHOOK_URL が設定されていません')
+		return
+	}
+
+	// WebhookClient作成
 	try {
-		const date = getFormattedDate()
+		webhookClient = new WebhookClient({ url: webhookUrl })
+	} catch (error) {
+		console.error('[Webhook] 初期化に失敗しました:', (error as Error).message)
+	}
+}
+
+/**
+ * Webhookにログを送信
+ */
+const sendToWebhook = async (level: LogLevel, message: string): Promise<void> => {
+	if (!webhookClient) return
+
+	try {
+		const timestamp = getTimestamp()
 		const color = LEVEL_COLORS[level]
-		const formattedMessage = formatMessage(args)
-		const styledLevel = applyColor(color, level.toUpperCase())
-		const content = `\`\`\`ansi
-[${date}] [${styledLevel}]: ${formattedMessage}\`\`\``
+		const styledLevel = colorize(color, level.toUpperCase())
 
-		// エラーレベルの場合は @everyone を付加
-		const webhookMessage = {
-			username: 'Bot Log',
-			content: level === 'error' ? `@everyone ${content}` : content,
-		}
-
-		await webhookLogger.send(webhookMessage)
+		await webhookClient.send({
+			username: 'Bot Logger',
+			content: `\`\`\`ansi\n[${timestamp}] [${styledLevel}]: ${message}\n\`\`\``,
+		})
 	} catch (error) {
 		// 循環参照を避けるためconsole.errorを使用
-		console.error('Webhook 送信に失敗しました:', (error as Error).message)
+		console.error('[Webhook] 送信に失敗しました:', (error as Error).message)
 	}
 }
 
 /**
- * winston のカスタムログレベルを定義
+ * コンソールにログを出力
  */
-const customLevels = {
-	levels: LOG_LEVELS,
-	colors: LEVEL_COLORS,
+const logToConsole = (level: LogLevel, message: string): void => {
+	const timestamp = getTimestamp()
+	const color = LEVEL_COLORS[level]
+	const styledLevel = colorize(color, level.toUpperCase())
+	console.log(`[${timestamp}] [${styledLevel}]: ${message}`)
 }
 
 /**
- * winston にカスタムカラーを追加
+ * Logger API
  */
-winston.addColors(customLevels.colors)
-
-/**
- * ログレベルに色を適用するためのフォーマッター
- */
-const colorizer = winston.format.colorize()
-
-/**
- * winston ロガーの作成
- */
-const winstonLogger = winston.createLogger({
-	levels: customLevels.levels, // カスタムログレベルを適用
-	level: 'info',
-	format: winston.format.combine(
-		winston.format.timestamp({ format: getFormattedDate() }), // タイムスタンプを追加
-		winston.format.printf(({ level, message, timestamp }) => {
-			return `[${timestamp}] [${level.toUpperCase()}]: ${message}`
-		}),
-	),
-	transports: [
-		// コンソールへのログ出力
-		new winston.transports.Console({
-			format: winston.format.combine(
-				winston.format.timestamp({ format: getFormattedDate() }), // タイムスタンプを追加
-				winston.format.printf(({ level, message, timestamp }) => {
-					// ログレベルをカラー化
-					const coloredLevel = colorizer.colorize(level, level.toUpperCase())
-					return `[${timestamp}] [${coloredLevel}]: ${message}`
-				}),
-			),
-		}),
-	],
-})
-
-/**
- * ロガーのエクスポート
- */
-export const logger = {} as Record<LogLevel, (...args: unknown[]) => void>
-
-/**
- * Webhook送信対象のログレベル
- */
-const WEBHOOK_LEVELS: readonly LogLevel[] = ['error', 'warn', 'success', 'info'] as const
-
-/**
- * 各ログレベルに対応するメソッドを logger オブジェクトに追加
- */
-for (const level of Object.keys(LOG_LEVELS) as LogLevel[]) {
-	logger[level] = (...args: unknown[]) => {
-		const message = formatMessage(args)
-		// winston にログを記録
-		winstonLogger.log(level, message)
-		// 特定のログレベルの場合は Webhook にも送信
-		if (WEBHOOK_LEVELS.includes(level)) {
-			sendWebhook(args, level)
+export const logger: Record<LogLevel, (...args: unknown[]) => void> = {
+	error: (...args) => {
+		const message = formatArgs(args)
+		logToConsole('error', message)
+		if (WEBHOOK_LEVELS.includes('error')) {
+			sendToWebhook('error', message)
 		}
-	}
+	},
+	warn: (...args) => {
+		const message = formatArgs(args)
+		logToConsole('warn', message)
+		if (WEBHOOK_LEVELS.includes('warn')) {
+			sendToWebhook('warn', message)
+		}
+	},
+	success: (...args) => {
+		const message = formatArgs(args)
+		logToConsole('success', message)
+		if (WEBHOOK_LEVELS.includes('success')) {
+			sendToWebhook('success', message)
+		}
+	},
+	info: (...args) => {
+		const message = formatArgs(args)
+		logToConsole('info', message)
+		if (WEBHOOK_LEVELS.includes('info')) {
+			sendToWebhook('info', message)
+		}
+	},
+	http: (...args) => {
+		const message = formatArgs(args)
+		logToConsole('http', message)
+	},
+	debug: (...args) => {
+		const message = formatArgs(args)
+		logToConsole('debug', message)
+	},
 }
 
-// loggerの定義後にWebhookLoggerを初期化
-initializeWebhookLogger()
+// Logger定義後にWebhookを初期化
+initWebhook()
