@@ -1,55 +1,30 @@
 import { WebhookClient } from 'discord.js'
 
-/**
- * ログレベルの定義
- */
-type LogLevel = 'error' | 'warn' | 'success' | 'info' | 'http' | 'debug'
+type LogLevel = 'error' | 'warn' | 'info' | 'log'
 
-/**
- * ANSIカラーの定義
- */
-type Color = 'red' | 'yellow' | 'green' | 'blue' | 'magenta' | 'white'
+type Color = 'red' | 'yellow' | 'green' | 'white'
 
-/**
- * ログレベルごとの色マッピング
- */
 const LEVEL_COLORS: Record<LogLevel, Color> = {
 	error: 'red',
 	warn: 'yellow',
-	success: 'green',
-	info: 'blue',
-	http: 'magenta',
-	debug: 'white',
+	info: 'green',
+	log: 'white',
 }
 
-/**
- * ANSIカラーコード
- */
 const ANSI_COLORS: Record<Color | 'reset', string> = {
 	red: '\u001b[31m',
 	yellow: '\u001b[33m',
 	green: '\u001b[32m',
-	blue: '\u001b[34m',
-	magenta: '\u001b[35m',
 	white: '\u001b[37m',
 	reset: '\u001b[0m',
 }
 
-/**
- * Webhook送信対象のログレベル
- */
-const WEBHOOK_LEVELS: readonly LogLevel[] = ['error', 'warn', 'success', 'info'] as const
+const WEBHOOK_LEVELS: readonly LogLevel[] = ['error', 'warn', 'info'] as const
 
-/**
- * テキストにANSI色を適用
- */
 const colorize = (color: Color, text: string): string => {
 	return `${ANSI_COLORS[color]}${text}${ANSI_COLORS.reset}`
 }
 
-/**
- * 日本時間でタイムスタンプを生成
- */
 const getTimestamp = (): string => {
 	return new Date().toLocaleString('ja-JP', {
 		timeZone: 'Asia/Tokyo',
@@ -63,9 +38,6 @@ const getTimestamp = (): string => {
 	})
 }
 
-/**
- * 引数を文字列に変換
- */
 const formatArgs = (args: unknown[]): string => {
 	return args
 		.map((arg) => {
@@ -80,39 +52,28 @@ const formatArgs = (args: unknown[]): string => {
 		.join(' ')
 }
 
-/**
- * WebhookClientのインスタンス
- */
 let webhookClient: WebhookClient | null = null
 
-/**
- * Webhook初期化
- */
 const initWebhook = (): void => {
-	// 開発環境ではWebhookを無効化
 	if (import.meta.env.NODE_ENV === 'development') {
-		console.warn('[Webhook] 開発環境のため無効化されています')
+		console.warn('[Webhook] Disabled in development environment')
 		return
 	}
 
-	// 環境変数チェック
 	const webhookUrl = import.meta.env.DISCORD_LOG_WEBHOOK_URL
 	if (!webhookUrl) {
-		console.warn('[Webhook] DISCORD_LOG_WEBHOOK_URL が設定されていません')
+		console.warn('[Webhook] DISCORD_LOG_WEBHOOK_URL is not set')
 		return
 	}
 
-	// WebhookClient作成
 	try {
 		webhookClient = new WebhookClient({ url: webhookUrl })
 	} catch (error) {
-		console.error('[Webhook] 初期化に失敗しました:', (error as Error).message)
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		console.error('[Webhook] Failed to initialize:', errorMessage)
 	}
 }
 
-/**
- * Webhookにログを送信
- */
 const sendToWebhook = async (level: LogLevel, message: string): Promise<void> => {
 	if (!webhookClient) return
 
@@ -126,14 +87,12 @@ const sendToWebhook = async (level: LogLevel, message: string): Promise<void> =>
 			content: `\`\`\`ansi\n[${timestamp}] [${styledLevel}]: ${message}\n\`\`\``,
 		})
 	} catch (error) {
-		// 循環参照を避けるためconsole.errorを使用
-		console.error('[Webhook] 送信に失敗しました:', (error as Error).message)
+		// Use console.error to avoid circular reference
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		console.error('[Webhook] Failed to send:', errorMessage)
 	}
 }
 
-/**
- * コンソールにログを出力
- */
 const logToConsole = (level: LogLevel, message: string): void => {
 	const timestamp = getTimestamp()
 	const color = LEVEL_COLORS[level]
@@ -141,9 +100,6 @@ const logToConsole = (level: LogLevel, message: string): void => {
 	console.log(`[${timestamp}] [${styledLevel}]: ${message}`)
 }
 
-/**
- * Logger API
- */
 export const logger: Record<LogLevel, (...args: unknown[]) => void> = {
 	error: (...args) => {
 		const message = formatArgs(args)
@@ -159,13 +115,6 @@ export const logger: Record<LogLevel, (...args: unknown[]) => void> = {
 			sendToWebhook('warn', message)
 		}
 	},
-	success: (...args) => {
-		const message = formatArgs(args)
-		logToConsole('success', message)
-		if (WEBHOOK_LEVELS.includes('success')) {
-			sendToWebhook('success', message)
-		}
-	},
 	info: (...args) => {
 		const message = formatArgs(args)
 		logToConsole('info', message)
@@ -173,15 +122,11 @@ export const logger: Record<LogLevel, (...args: unknown[]) => void> = {
 			sendToWebhook('info', message)
 		}
 	},
-	http: (...args) => {
+	log: (...args) => {
 		const message = formatArgs(args)
-		logToConsole('http', message)
-	},
-	debug: (...args) => {
-		const message = formatArgs(args)
-		logToConsole('debug', message)
+		logToConsole('log', message)
 	},
 }
 
-// Logger定義後にWebhookを初期化
+// Initialize webhook after logger definition
 initWebhook()
