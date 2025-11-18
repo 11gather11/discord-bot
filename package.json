@@ -11,8 +11,7 @@
 		"check:fix": "biome check --write ./src/",
 		"typecheck": "tsc --noEmit",
 		"changeset": "changeset",
-		"version": "changeset version && bun i --lockfile-only",
-		"publish": "echo 'Skip publish (private package)'"
+		"version": "changeset version && bun i --lockfile-only"
 	},
 	"dependencies": {
 		"discord.js": "14.25.0",
