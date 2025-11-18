@@ -42,12 +42,12 @@ Edit `.env` and fill in your credentials:
 
 **Required:**
 - `DISCORD_GUILD_ID` - Your Discord server ID
-- `DISCORD_STREAMS_CHANNEL_ID` - Channel ID for Twitch notifications
 - `DISCORD_TOKEN` - Your Discord bot token
+- `DISCORD_STREAMS_CHANNEL_ID` - Channel ID for Twitch notifications
 - `DISCORD_VIDEOS_CHANNEL_ID` - Channel ID for YouTube notifications
+- `YOUTUBE_API_KEY` - Your YouTube Data API v3 key
 - `TWITCH_CLIENT_ID` - Your Twitch application client ID
 - `TWITCH_CLIENT_SECRET` - Your Twitch application client secret
-- `YOUTUBE_API_KEY` - Your YouTube Data API v3 key
 
 **Optional:**
 - `DISCORD_LOG_WEBHOOK_URL` - Webhook URL for logging
