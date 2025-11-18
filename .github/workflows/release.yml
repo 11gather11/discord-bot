@@ -37,3 +37,13 @@ jobs:
           title: "ci: release"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --generate-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
