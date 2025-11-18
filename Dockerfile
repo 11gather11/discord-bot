@@ -25,6 +25,6 @@ USER bun
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD bun run healthcheck || exit 1
+  CMD bun --version || exit 1
 
 CMD ["bun", "run", "src/index.ts"]

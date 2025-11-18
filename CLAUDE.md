@@ -267,7 +267,7 @@ README、CONTRIBUTING、その他のプロジェクトドキュメント
 #### 1. ディレクトリ構造
 ルートディレクトリを汚さないため、翻訳版は `docs/` 配下に配置
 
-```
+```markdown
 README.md                    ← 英語版（GitHubが自動表示）
 CONTRIBUTING.md              ← 英語版
 docs/
