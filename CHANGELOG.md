@@ -1,5 +1,11 @@
 # discord-bot
 
+## 1.0.2
+
+### Patch Changes
+
+- [#28](https://github.com/11gather11/discord-bot/pull/28) [`01917c2`](https://github.com/11gather11/discord-bot/commit/01917c294b791b99578b4ce2f5fbe3d9436daa2e) Thanks [@11gather11](https://github.com/11gather11)! - feat: add GitHub Release creation step to workflow
+
 ## 1.0.1
 
 ### Patch Changes
