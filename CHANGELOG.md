@@ -1,5 +1,11 @@
 # discord-bot
 
+## 1.0.5
+
+### Patch Changes
+
+- [#34](https://github.com/11gather11/discord-bot/pull/34) [`224b8c9`](https://github.com/11gather11/discord-bot/commit/224b8c9979c7acc0da6a3342f47ba4c063974ba2) Thanks [@11gather11](https://github.com/11gather11)! - Integrate deploy process into release workflow to fix deployment automation
+
 ## 1.0.4
 
 ### Patch Changes
