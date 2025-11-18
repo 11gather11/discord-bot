@@ -1,15 +1,34 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# dependencies (bun install)
+node_modules
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
+# output
+out
+dist
+*.tgz
 
-# production
-/build
-/dist
-/logs
+# code coverage
+coverage
+*.lcov
 
-# environment variables
-.env.*
+# logs
+logs
+_.log
+report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# IntelliJ based IDEs
+.idea
+
+# Finder (MacOS) folder config
+.DS_Store
