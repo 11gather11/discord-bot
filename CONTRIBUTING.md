@@ -242,7 +242,7 @@ git commit -m "feat: add forum channel support"
 
 ### Changeset Flow
 
-```
+```text
 Your PR → Merge to main → "Version Packages" PR created automatically
                        ↓
             Merge Version PR → Release & Deploy
