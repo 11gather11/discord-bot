@@ -14,15 +14,15 @@ Thank you for your interest in contributing! This document provides guidelines f
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) v1.1.21 or higher
+- [Bun](https://bun.sh) v1.3.2 or higher
 - Discord Bot Token and API credentials
 
 ### Installation
 
 1. Fork and clone the repository:
 ```bash
-git clone https://github.com/your-username/discord-bot-1.git
-cd discord-bot-1
+git clone https://github.com/11gather11/discord-bot.git
+cd discord-bot
 ```
 
 2. Install dependencies:
@@ -36,8 +36,8 @@ cp .env.example .env
 ```
 
 4. Edit `.env` and fill in your credentials:
-   - **Required**: `DISCORD_TOKEN`, `DISCORD_GUILD_ID`, `YOUTUBE_API_KEY`, `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`
-   - **Channel IDs**: `DISCORD_VIDEOS_CHANNEL_ID`, `DISCORD_STREAMS_CHANNEL_ID`
+   - **Required**: `DISCORD_GUILD_ID`, `DISCORD_TOKEN`, `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `YOUTUBE_API_KEY`
+   - **Channel IDs**: `DISCORD_STREAMS_CHANNEL_ID`, `DISCORD_VIDEOS_CHANNEL_ID`
    - **Optional**: Twitter integration, logging webhook, member count channel
 
 5. Run the bot:

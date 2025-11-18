@@ -41,18 +41,18 @@ cp .env.example .env
 Edit `.env` and fill in your credentials:
 
 **Required:**
-- `DISCORD_TOKEN` - Your Discord bot token
 - `DISCORD_GUILD_ID` - Your Discord server ID
-- `DISCORD_VIDEOS_CHANNEL_ID` - Channel ID for YouTube notifications
 - `DISCORD_STREAMS_CHANNEL_ID` - Channel ID for Twitch notifications
-- `YOUTUBE_API_KEY` - Your YouTube Data API v3 key
+- `DISCORD_TOKEN` - Your Discord bot token
+- `DISCORD_VIDEOS_CHANNEL_ID` - Channel ID for YouTube notifications
 - `TWITCH_CLIENT_ID` - Your Twitch application client ID
 - `TWITCH_CLIENT_SECRET` - Your Twitch application client secret
+- `YOUTUBE_API_KEY` - Your YouTube Data API v3 key
 
 **Optional:**
 - `DISCORD_LOG_WEBHOOK_URL` - Webhook URL for logging
-- `TWITTER_*` - Twitter API credentials for social integration
 - `DISCORD_MEMBER_COUNT_CHANNEL_ID` - Channel for member count display
+- `TWITTER_*` - Twitter API credentials for social integration
 
 ### 4. Deploy Discord commands
 
