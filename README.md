@@ -85,6 +85,12 @@ bun run check
 
 # Fix linting and formatting issues
 bun run check:fix
+
+# Create a changeset for versioning
+bun run changeset
+
+# Version packages based on changesets (automated via GitHub Actions)
+bun run version
 ```
 
 ### Project Structure
@@ -98,6 +104,47 @@ src/
 ├── services/       # Business logic (notifications, etc.)
 └── index.ts        # Bot entry point
 ```
+
+## Versioning & Release
+
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated releases.
+
+### Creating a Changeset
+
+When you make changes that should be included in the next release:
+
+```bash
+bun run changeset
+```
+
+This will:
+1. Prompt you to select the type of change (major/minor/patch)
+2. Ask for a summary of the changes
+3. Create a changeset file in `.changeset/`
+
+**Commit the generated changeset file** with your PR.
+
+### Release Process
+
+The release process is fully automated via GitHub Actions:
+
+1. **Create a PR** with your changes and changeset file
+2. **Merge to main** - GitHub Actions automatically creates a "Version Packages" PR
+3. **Merge the Version PR** - This triggers:
+   - Version bump in `package.json`
+   - `CHANGELOG.md` update
+   - Git tag creation
+   - GitHub Release creation
+   - Automated deployment (when configured)
+
+### Manual Versioning (local testing only)
+
+```bash
+# Update versions based on changesets locally
+bun run version
+```
+
+**Note:** In production, versioning is fully automated via GitHub Actions.
 
 ## Contributing
 
