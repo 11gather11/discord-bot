@@ -8,6 +8,7 @@ Thank you for your interest in contributing! This document provides guidelines f
 - [Development Workflow](#development-workflow)
 - [Coding Guidelines](#coding-guidelines)
 - [Commit Message Convention](#commit-message-convention)
+- [Versioning & Changesets](#versioning--changesets)
 - [Pull Request Process](#pull-request-process)
 
 ## Development Setup
@@ -84,6 +85,23 @@ git checkout -b docs/documentation-update
 ```bash
 bun run typecheck
 ```
+
+4. **Create a changeset** (for all non-trivial changes):
+```bash
+bun run changeset
+```
+
+This will:
+- Prompt you to select the change type (major/minor/patch)
+- Ask for a summary of your changes
+- Create a changeset file in `.changeset/`
+
+**When to create a changeset:**
+- ✅ New features (`minor`)
+- ✅ Bug fixes (`patch`)
+- ✅ Breaking changes (`major`)
+- ❌ Documentation-only changes
+- ❌ Code formatting/linting fixes
 
 ## Coding Guidelines
 
@@ -165,14 +183,90 @@ refactor: simplify Twitch notification logic
 chore: update dependencies to latest versions
 ```
 
+## Versioning & Changesets
+
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated releases.
+
+### What is a Changeset?
+
+A changeset is a small file describing your changes and their impact on versioning. It allows us to:
+- Track changes across multiple PRs
+- Automatically generate CHANGELOG entries
+- Automate version bumps and releases
+
+### When to Create a Changeset
+
+**Create a changeset for:**
+- ✅ New features
+- ✅ Bug fixes
+- ✅ Breaking changes
+- ✅ Performance improvements
+- ✅ Any change that affects users or developers
+
+**Skip changeset for:**
+- ❌ Documentation-only updates
+- ❌ Code formatting/linting fixes
+- ❌ Internal refactoring with no external impact
+- ❌ CI/CD configuration changes
+
+### How to Create a Changeset
+
+1. Run the changeset command:
+```bash
+bun run changeset
+```
+
+2. Select the type of change:
+   - **Patch** (`0.0.X`) - Bug fixes, small improvements
+   - **Minor** (`0.X.0`) - New features, backwards-compatible changes
+   - **Major** (`X.0.0`) - Breaking changes
+
+3. Write a clear summary:
+```markdown
+# Good examples
+- Add support for Discord forum channels
+- Fix Twitch notification duplicate messages
+- Update YouTube API to v4
+
+# Bad examples
+- fixed bug
+- updates
+- changes
+```
+
+4. Commit the generated changeset file:
+```bash
+git add .changeset/*.md
+git commit -m "feat: add forum channel support"
+```
+
+### Changeset Flow
+
+```text
+Your PR → Merge to main → "Version Packages" PR created automatically
+                       ↓
+            Merge Version PR → Release & Deploy
+```
+
+After your PR is merged:
+1. GitHub Actions automatically creates a "Version Packages" PR
+2. This PR includes all changesets since the last release
+3. When merged, it triggers:
+   - Version bump in `package.json`
+   - CHANGELOG update with all changes
+   - Git tag and GitHub Release creation
+   - Automated deployment
+
 ## Pull Request Process
 
 ### Before Submitting
 
 1. ✅ Run type checking: `bun run typecheck`
 2. ✅ Ensure your code follows the coding guidelines
-3. ✅ Write clear commit messages following Conventional Commits
-4. ✅ Update documentation if needed
+3. ✅ Create a changeset (if applicable): `bun run changeset`
+4. ✅ Commit the changeset file (`.changeset/*.md`) with your changes
+5. ✅ Write clear commit messages following Conventional Commits
+6. ✅ Update documentation if needed
 
 ### Submitting a PR
 
