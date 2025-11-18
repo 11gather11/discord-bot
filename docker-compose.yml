@@ -1,0 +1,18 @@
+services:
+  discord-bot:
+    image: ghcr.io/11gather11/discord-bot:latest
+    container_name: discord-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - discord-bot-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  discord-bot-network:
+    driver: bridge

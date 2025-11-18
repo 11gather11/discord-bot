@@ -1,5 +1,13 @@
 # Discord Bot
 
+[![CI](https://github.com/11gather11/discord-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/11gather11/discord-bot/actions/workflows/ci.yml)
+[![Release](https://github.com/11gather11/discord-bot/actions/workflows/release.yml/badge.svg)](https://github.com/11gather11/discord-bot/actions/workflows/release.yml)
+[![Deploy](https://github.com/11gather11/discord-bot/actions/workflows/deploy.yml/badge.svg)](https://github.com/11gather11/discord-bot/actions/workflows/deploy.yml)
+[![Version](https://img.shields.io/github/v/release/11gather11/discord-bot)](https://github.com/11gather11/discord-bot/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
+**Languages**: [English](./README.md) | [日本語](./docs/ja/README.md)
+
 A feature-rich Discord bot with YouTube and Twitch live stream notifications, Twitter integration, and member count tracking.
 
 ## Features
@@ -145,6 +153,79 @@ bun run version
 ```
 
 **Note:** In production, versioning is fully automated via GitHub Actions.
+
+## Deployment
+
+This project uses Docker and GitHub Actions for automated deployment to VPS.
+
+### VPS Setup
+
+1. **Install Docker and Docker Compose**
+
+```bash
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+sudo apt install docker-compose-plugin -y
+```
+
+2. **Create deployment directory**
+
+```bash
+sudo mkdir -p /opt/11gather11-discord-bot
+sudo chown $USER:$USER /opt/11gather11-discord-bot
+cd /opt/11gather11-discord-bot
+```
+
+3. **Create `.env` file**
+
+```bash
+nano .env
+```
+
+Add your environment variables (see [.env.example](.env.example) for reference).
+
+4. **Create `docker-compose.yml`**
+
+```bash
+nano docker-compose.yml
+```
+
+Copy the contents from [docker-compose.yml](docker-compose.yml).
+
+5. **Log in to GitHub Container Registry**
+
+```bash
+echo "YOUR_GITHUB_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+```
+
+### GitHub Secrets
+
+Add these secrets to your repository (**Settings → Secrets and variables → Actions**):
+
+| Secret | Description |
+|--------|-------------|
+| `SSH_HOST` | VPS IP address |
+| `SSH_USERNAME` | SSH username |
+| `SSH_KEY` | SSH private key |
+| `SSH_PORT` | SSH port (optional, default: 22) |
+
+### Deployment Flow
+
+```
+GitHub Release → Build Docker Image → Push to ghcr.io → Deploy to VPS
+```
+
+The deployment happens automatically when you merge the "Version Packages" PR.
+
+### Manual Deployment
+
+```bash
+cd /opt/11gather11-discord-bot
+docker compose pull
+docker compose up -d
+docker compose logs -f
+```
 
 ## Contributing
 
