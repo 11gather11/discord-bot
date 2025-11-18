@@ -1,6 +1,6 @@
 {
 	"$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
-	"changelog": ["changesets/changelog-github", { "repo": "11gather11/discord-bot" }],
+	"changelog": ["@changesets/changelog-github", { "repo": "11gather11/discord-bot" }],
 	"commit": false,
 	"fixed": [],
 	"linked": [],
