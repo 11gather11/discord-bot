@@ -256,3 +256,44 @@ export const tweet = async (text: string): Promise<void> => {
 - `src/services/youtube.ts` - 動画通知サービスの例（必須）
 - `src/services/twitter.ts` - Twitter連携の例（オプショナル）
 - `src/services/memberCounts.ts` - メンバー数更新の例（オプショナル）
+
+## 【SHOULD】多言語ドキュメント管理
+
+### 適用範囲
+README、CONTRIBUTING、その他のプロジェクトドキュメント
+
+### 必須要件
+
+#### 1. ディレクトリ構造
+ルートディレクトリを汚さないため、翻訳版は `docs/` 配下に配置
+
+```markdown
+README.md                    ← 英語版（GitHubが自動表示）
+CONTRIBUTING.md              ← 英語版
+docs/
+  ja/
+    README.md                ← 日本語版
+    CONTRIBUTING.md          ← 日本語版
+  fr/                        ← 将来的に追加可能
+    README.md
+```
+
+#### 2. 言語切り替えリンク
+各ドキュメントの冒頭に言語切り替えリンクを追加
+
+```markdown
+**Languages**: [English](./README.md) | [日本語](./docs/ja/README.md)
+```
+
+日本語版の場合：
+```markdown
+**言語**: [English](../../README.md) | [日本語](./README.md)
+```
+
+#### 3. メンテナンス方針
+- **英語版が正式版** - 常に英語版を最新に保つ
+- **日本語版は翻訳** - 英語版の変更後に同期
+- **相対パスの調整** - `docs/ja/` から参照する際は `../../` を使用
+
+#### 4. スケーラビリティ
+将来的に他言語を追加する場合も同じパターンで `docs/[lang]/` を作成

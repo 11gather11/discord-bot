@@ -1,5 +1,7 @@
 # Contributing to Discord Bot
 
+**Languages**: [English](./CONTRIBUTING.md) | [日本語](./docs/ja/CONTRIBUTING.md)
+
 Thank you for your interest in contributing! This document provides guidelines for contributing to this project.
 
 ## Table of Contents
