@@ -1,5 +1,13 @@
 # discord-bot
 
+## 1.0.3
+
+### Patch Changes
+
+- [#30](https://github.com/11gather11/discord-bot/pull/30) [`c8bc16b`](https://github.com/11gather11/discord-bot/commit/c8bc16be15d0a5757346a51c2151612538d523b7) Thanks [@11gather11](https://github.com/11gather11)! - fix: add publish script to enable GitHub Release creation
+
+  Added empty publish script to package.json so changesets/action sets `published: true` after version bumps, enabling proper GitHub Release creation without actually publishing to npm.
+
 ## 1.0.2
 
 ### Patch Changes
