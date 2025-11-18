@@ -1,5 +1,13 @@
 # discord-bot
 
+## 1.0.4
+
+### Patch Changes
+
+- [#32](https://github.com/11gather11/discord-bot/pull/32) [`dc92b64`](https://github.com/11gather11/discord-bot/commit/dc92b6457397bda1c90ce45e7738ca9c5d1fe647) Thanks [@11gather11](https://github.com/11gather11)! - fix: use version change detection for GitHub Release creation
+
+  Replace publish script approach with version change detection. The workflow now compares package.json versions between commits to accurately determine when to create GitHub Releases, preventing false triggers from non-version-bump PRs.
+
 ## 1.0.3
 
 ### Patch Changes
