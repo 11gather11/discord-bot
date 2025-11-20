@@ -1,6 +1,6 @@
 services:
   discord-bot:
-    image: ghcr.io/11gather11/discord-bot:latest
+    image: ghcr.io/11gather11/discord-bot:latest@sha256:c44fcb95cd854596e32919863f5d8121cd121237221bfe82f37d5fae23eee6a6
     container_name: discord-bot
     restart: unless-stopped
     env_file:

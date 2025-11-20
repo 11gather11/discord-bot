@@ -102,7 +102,7 @@ jobs:
 
       - name: Copy docker-compose.yml to VPS
         if: steps.version_check.outputs.version_changed == 'true'
-        uses: appleboy/scp-action@v1
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
