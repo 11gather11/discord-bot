@@ -1,5 +1,0 @@
----
-"discord-bot": patch
----
-
-test
