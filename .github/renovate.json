@@ -1,14 +1,21 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-	"schedule": ["before 4am on Monday"],
-	"extends": ["config:best-practices", "helpers:pinGitHubActionDigestsToSemver"],
+	"schedule": [
+		"before 4am on Monday"
+	],
+	"extends": [
+		"config:best-practices",
+		"helpers:pinGitHubActionDigestsToSemver"
+	],
 	"lockFileMaintenance": {
 		"enabled": false
 	},
 	"rangeStrategy": "bump",
 	"packageRules": [
 		{
-			"matchFiles": ["docker-compose.yml"],
+			"matchFileNames": [
+				"docker-compose.yml"
+			],
 			"pinDigests": false
 		}
 	]
