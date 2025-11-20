@@ -1,5 +1,11 @@
 # discord-bot
 
+## 1.0.7
+
+### Patch Changes
+
+- [#41](https://github.com/11gather11/discord-bot/pull/41) [`799acb9`](https://github.com/11gather11/discord-bot/commit/799acb9d445731f121fe6a83f2eb9ef1478eb8cc) Thanks [@11gather11](https://github.com/11gather11)! - Support ARM64 platform for Docker images and auto-deploy docker-compose.yml to VPS
+
 ## 1.0.6
 
 ### Patch Changes
