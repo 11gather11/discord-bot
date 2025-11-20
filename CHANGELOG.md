@@ -1,5 +1,11 @@
 # discord-bot
 
+## 1.0.6
+
+### Patch Changes
+
+- [#37](https://github.com/11gather11/discord-bot/pull/37) [`ac625a4`](https://github.com/11gather11/discord-bot/commit/ac625a4351165c9772848a6b07964dcf2f90b759) Thanks [@11gather11](https://github.com/11gather11)! - test
+
 ## 1.0.5
 
 ### Patch Changes
