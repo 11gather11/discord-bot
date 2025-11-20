@@ -46,7 +46,6 @@ const updateCount = async (client: Client): Promise<void> => {
 
 	try {
 		await updateChannelName(client, config.guildId, config.channelId)
-		logger.info('[MemberCounts] Member count updated successfully')
 	} catch (error) {
 		logger.error('[MemberCounts] Failed to update member count:', error as Error)
 	}
