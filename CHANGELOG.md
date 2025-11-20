@@ -1,5 +1,11 @@
 # discord-bot
 
+## 1.0.8
+
+### Patch Changes
+
+- [#44](https://github.com/11gather11/discord-bot/pull/44) [`0f71962`](https://github.com/11gather11/discord-bot/commit/0f719628f8709288c76033c95555a44bace16a13) Thanks [@11gather11](https://github.com/11gather11)! - Remove redundant member count success logs that were outputting every 10 minutes
+
 ## 1.0.7
 
 ### Patch Changes
