@@ -1,5 +1,11 @@
 # discord-bot
 
+## 1.0.9
+
+### Patch Changes
+
+- [#46](https://github.com/11gather11/discord-bot/pull/46) [`70effab`](https://github.com/11gather11/discord-bot/commit/70effab678f0b0af5b0f0610ec756c19988bf9af) Thanks [@11gather11](https://github.com/11gather11)! - Simplify README documentation and update Docker startup
+
 ## 1.0.8
 
 ### Patch Changes
