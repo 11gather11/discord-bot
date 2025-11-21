@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/11gather11/discord-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/11gather11/discord-bot/actions/workflows/ci.yml)
 [![Release](https://github.com/11gather11/discord-bot/actions/workflows/release.yml/badge.svg)](https://github.com/11gather11/discord-bot/actions/workflows/release.yml)
-[![Deploy](https://github.com/11gather11/discord-bot/actions/workflows/deploy.yml/badge.svg)](https://github.com/11gather11/discord-bot/actions/workflows/deploy.yml)
 [![Version](https://img.shields.io/github/v/release/11gather11/discord-bot)](https://github.com/11gather11/discord-bot/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -46,21 +45,7 @@ bun install
 cp .env.example .env
 ```
 
-Edit `.env` and fill in your credentials:
-
-**Required:**
-- `DISCORD_GUILD_ID` - Your Discord server ID
-- `DISCORD_TOKEN` - Your Discord bot token
-- `DISCORD_STREAMS_CHANNEL_ID` - Channel ID for Twitch notifications
-- `DISCORD_VIDEOS_CHANNEL_ID` - Channel ID for YouTube notifications
-- `YOUTUBE_API_KEY` - Your YouTube Data API v3 key
-- `TWITCH_CLIENT_ID` - Your Twitch application client ID
-- `TWITCH_CLIENT_SECRET` - Your Twitch application client secret
-
-**Optional:**
-- `DISCORD_LOG_WEBHOOK_URL` - Webhook URL for logging
-- `DISCORD_MEMBER_COUNT_CHANNEL_ID` - Channel for member count display
-- `TWITTER_*` - Twitter API credentials for social integration
+Edit `.env` with your credentials. See [.env.example](.env.example) for all available options.
 
 ### 4. Deploy Discord commands
 
@@ -79,80 +64,12 @@ bun run dev
 ### Available Scripts
 
 ```bash
-# Run bot in development mode with hot reload
-bun run dev
-
-# Deploy Discord slash commands
-bun run deploy-commands
-
-# Run type checking
-bun run typecheck
-
-# Lint and format code
-bun run check
-
-# Fix linting and formatting issues
-bun run check:fix
-
-# Create a changeset for versioning
-bun run changeset
-
-# Version packages based on changesets (automated via GitHub Actions)
-bun run version
+bun run dev            # Development mode with hot reload
+bun run typecheck      # Type checking
+bun run check          # Lint & format
 ```
 
-### Project Structure
-
-```
-src/
-├── commands/       # Discord slash commands
-├── config/         # Configuration files
-├── handlers/       # Event and command handlers
-├── lib/            # API integrations (YouTube, Twitch, etc.)
-├── services/       # Business logic (notifications, etc.)
-└── index.ts        # Bot entry point
-```
-
-## Versioning & Release
-
-This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated releases.
-
-### Creating a Changeset
-
-When you make changes that should be included in the next release:
-
-```bash
-bun run changeset
-```
-
-This will:
-1. Prompt you to select the type of change (major/minor/patch)
-2. Ask for a summary of the changes
-3. Create a changeset file in `.changeset/`
-
-**Commit the generated changeset file** with your PR.
-
-### Release Process
-
-The release process is fully automated via GitHub Actions:
-
-1. **Create a PR** with your changes and changeset file
-2. **Merge to main** - GitHub Actions automatically creates a "Version Packages" PR
-3. **Merge the Version PR** - This triggers:
-   - Version bump in `package.json`
-   - `CHANGELOG.md` update
-   - Git tag creation
-   - GitHub Release creation
-   - Automated deployment (when configured)
-
-### Manual Versioning (local testing only)
-
-```bash
-# Update versions based on changesets locally
-bun run version
-```
-
-**Note:** In production, versioning is fully automated via GitHub Actions.
+See `package.json` for all available scripts.
 
 ## Deployment
 
@@ -229,16 +146,7 @@ docker compose logs -f
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
-### Quick Contribution Guide
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow the coding guidelines in [CLAUDE.md](./CLAUDE.md)
-4. Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages
-5. Run type checking: `bun run typecheck`
-6. Submit a Pull Request
+Contributions welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## License
 

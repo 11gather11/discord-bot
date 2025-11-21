@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/11gather11/discord-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/11gather11/discord-bot/actions/workflows/ci.yml)
 [![Release](https://github.com/11gather11/discord-bot/actions/workflows/release.yml/badge.svg)](https://github.com/11gather11/discord-bot/actions/workflows/release.yml)
-[![Deploy](https://github.com/11gather11/discord-bot/actions/workflows/deploy.yml/badge.svg)](https://github.com/11gather11/discord-bot/actions/workflows/deploy.yml)
 [![Version](https://img.shields.io/github/v/release/11gather11/discord-bot)](https://github.com/11gather11/discord-bot/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -46,21 +45,7 @@ bun install
 cp .env.example .env
 ```
 
-`.env`を編集して認証情報を入力してください：
-
-**必須:**
-- `DISCORD_GUILD_ID` - DiscordサーバーID
-- `DISCORD_TOKEN` - Discord Botトークン
-- `DISCORD_STREAMS_CHANNEL_ID` - Twitch通知用のチャンネルID
-- `DISCORD_VIDEOS_CHANNEL_ID` - YouTube通知用のチャンネルID
-- `YOUTUBE_API_KEY` - YouTube Data API v3 キー
-- `TWITCH_CLIENT_ID` - TwitchアプリケーションのクライアントID
-- `TWITCH_CLIENT_SECRET` - Twitchアプリケーションのクライアントシークレット
-
-**オプション:**
-- `DISCORD_LOG_WEBHOOK_URL` - ログ記録用のWebhook URL
-- `DISCORD_MEMBER_COUNT_CHANNEL_ID` - メンバー数表示用のチャンネル
-- `TWITTER_*` - SNS連携用のTwitter API認証情報
+`.env`を編集して認証情報を入力してください。利用可能なオプションは[.env.example](../../.env.example)を参照。
 
 ### 4. Discordコマンドのデプロイ
 
@@ -79,80 +64,12 @@ bun run dev
 ### 利用可能なスクリプト
 
 ```bash
-# ホットリロード付きの開発モードでBotを起動
-bun run dev
-
-# Discordスラッシュコマンドのデプロイ
-bun run deploy-commands
-
-# 型チェックの実行
-bun run typecheck
-
-# コードのlintとフォーマット
-bun run check
-
-# lintとフォーマットの問題を自動修正
-bun run check:fix
-
-# バージョニング用のchangesetを作成
-bun run changeset
-
-# changesetに基づいてパッケージをバージョンアップ（GitHub Actions経由で自動化）
-bun run version
+bun run dev            # ホットリロード付き開発モード
+bun run typecheck      # 型チェック
+bun run check          # Lint & フォーマット
 ```
 
-### プロジェクト構造
-
-```
-src/
-├── commands/       # Discordスラッシュコマンド
-├── config/         # 設定ファイル
-├── handlers/       # イベントとコマンドのハンドラー
-├── lib/            # API連携（YouTube、Twitchなど）
-├── services/       # ビジネスロジック（通知など）
-└── index.ts        # Botのエントリーポイント
-```
-
-## バージョニング & リリース
-
-このプロジェクトは[Changesets](https://github.com/changesets/changesets)を使用してバージョン管理と自動リリースを行います。
-
-### Changesetの作成
-
-次回リリースに含めるべき変更を行った場合：
-
-```bash
-bun run changeset
-```
-
-これにより以下が実行されます：
-1. 変更タイプの選択を求められます（major/minor/patch）
-2. 変更の概要を入力します
-3. `.changeset/`ディレクトリにchangesetファイルが作成されます
-
-**生成されたchangesetファイルをPRと一緒にコミット**してください。
-
-### リリースプロセス
-
-リリースプロセスはGitHub Actionsによって完全に自動化されています：
-
-1. **PRの作成** - 変更とchangesetファイルを含むPRを作成
-2. **mainにマージ** - GitHub Actionsが自動的に「Version Packages」PRを作成
-3. **Version PRのマージ** - これにより以下がトリガーされます：
-   - `package.json`のバージョンアップ
-   - `CHANGELOG.md`の更新
-   - Gitタグの作成
-   - GitHub Releaseの作成
-   - 自動デプロイ（設定時）
-
-### 手動バージョニング（ローカルテスト用のみ）
-
-```bash
-# changesetに基づいてローカルでバージョンを更新
-bun run version
-```
-
-**注意:** 本番環境では、バージョニングはGitHub Actionsによって完全に自動化されます。
+全スクリプトは`package.json`を参照。
 
 ## デプロイ
 
@@ -229,16 +146,7 @@ docker compose logs -f
 
 ## コントリビューション
 
-コントリビューションを歓迎します！ガイドラインについては[CONTRIBUTING.md](../../CONTRIBUTING.md)をご覧ください。
-
-### クイックコントリビューションガイド
-
-1. リポジトリをフォーク
-2. フィーチャーブランチを作成（`git checkout -b feature/amazing-feature`）
-3. [CLAUDE.md](../../CLAUDE.md)のコーディングガイドラインに従う
-4. [Conventional Commits](https://www.conventionalcommits.org/)でコミットメッセージを作成
-5. 型チェックを実行: `bun run typecheck`
-6. プルリクエストを提出
+コントリビューション歓迎！ガイドラインは[CONTRIBUTING.md](../../CONTRIBUTING.md)を参照。
 
 ## ライセンス
 

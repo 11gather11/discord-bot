@@ -27,4 +27,4 @@ USER bun
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD bun --version || exit 1
 
-CMD ["bun", "run", "src/index.ts"]
+CMD ["sh", "-c", "bun run deploy-commands && bun run src/index.ts"]
