@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1@sha256:b6afd42430b15f2d2a4c5a02b919e98a525b785b1aaff16747d2f623364e39b6
 
-FROM oven/bun:1.3.2-alpine@sha256:adda30fd4db7d8ef9a2113cb935c6f751de3daad39373713b56eefe49db78471 AS base
+FROM oven/bun:1.4.3-alpine@sha256:629e17411f1f129dbec3af78d5af9c9f2a937435c80349437206c6b0b7422373 AS base
 WORKDIR /app
 
 # Install dependencies
